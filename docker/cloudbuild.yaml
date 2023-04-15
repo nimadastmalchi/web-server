@@ -1,0 +1,26 @@
+steps:
+- name: 'gcr.io/cloud-builders/docker'
+  entrypoint: 'bash'
+  args:
+  - '-c'
+  - |
+    docker pull gcr.io/$PROJECT_ID/a2-team-please-adopt-me-nima:base || exit 0
+- name: 'gcr.io/cloud-builders/docker'
+  args: [
+    'build',
+    '-f', 'docker/base.Dockerfile',
+    '-t', 'a2-team-please-adopt-me-nima:base',
+    '-t', 'gcr.io/$PROJECT_ID/a2-team-please-adopt-me-nima:base',
+    '--cache-from', 'gcr.io/$PROJECT_ID/a2-team-please-adopt-me-nima:base',
+    '.'
+  ]
+- name: 'gcr.io/cloud-builders/docker'
+  args: ['push', 'gcr.io/$PROJECT_ID/a2-team-please-adopt-me-nima:base']
+- name: 'gcr.io/cloud-builders/docker'
+  args: [
+    'build',
+    '-f', 'docker/Dockerfile',
+    '-t', 'gcr.io/$PROJECT_ID/a2-team-please-adopt-me-nima:latest',
+    '.'
+  ]
+images: ['gcr.io/$PROJECT_ID/a2-team-please-adopt-me-nima:base', 'gcr.io/$PROJECT_ID/a2-team-please-adopt-me-nima:latest']
