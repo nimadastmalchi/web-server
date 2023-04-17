@@ -18,7 +18,7 @@ tcp::socket& session::socket() {
 
 void session::start() {
     socket_.async_read_some(boost::asio::buffer(data_, max_length),
-        boost::bind(&session::handle_read, this,
+        boost::bind(&session::handle_request_read, this,
         boost::asio::placeholders::error,
         boost::asio::placeholders::bytes_transferred));
 }
@@ -40,6 +40,39 @@ void session::handle_write(const boost::system::error_code& error) {
     if (!error) {
         socket_.async_read_some(boost::asio::buffer(data_, max_length),
             boost::bind(&session::handle_read, this,
+            boost::asio::placeholders::error,
+            boost::asio::placeholders::bytes_transferred));
+    }
+    else {
+        delete this;
+    }
+}
+
+void session::handle_request_read(const boost::system::error_code& error,
+      size_t bytes_transferred) {
+    if (!error) {
+        const std::string delimiter = "\r\n\r\n";
+
+        std::string response_code = "HTTP/1.1 200 0K\r\n";
+        std::string content_type = "text/plain\r\n\n";
+        std::string content = data_;
+
+        response_ = response_code + content_type + content + "\r\n";
+
+        boost::asio::async_write(socket_, 
+            boost::asio::buffer(response_, response_.size()),
+            boost::bind(&session::handle_request_write, this,
+            boost::asio::placeholders::error));
+    }
+    else {
+        delete this;
+    }
+}
+
+void session::handle_request_write(const boost::system::error_code& error) {
+    if (!error) {
+        socket_.async_read_some(boost::asio::buffer(data_, max_length),
+            boost::bind(&session::handle_request_read, this,
             boost::asio::placeholders::error,
             boost::asio::placeholders::bytes_transferred));
     }
