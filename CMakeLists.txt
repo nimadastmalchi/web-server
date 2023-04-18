@@ -35,9 +35,15 @@ message(STATUS "Boost version: ${Boost_VERSION}")
 include_directories(include)
 
 # Compile and link server executable
-add_library(server_lib src/server.cc src/session.cc src/config_parser.cc)
+add_library(config_parser_lib src/config_parser.cc)
+add_library(server_lib src/server.cc src/session.cc)
 add_executable(server src/server_main.cc)
-target_link_libraries(server server_lib Boost::system)
+target_link_libraries(server server_lib Boost::system config_parser_lib)
+
+# Compile and link tests
+add_executable(config_parser_test tests/config_parser_test.cc)
+target_link_libraries(config_parser_test config_parser_lib gtest_main)
+gtest_discover_tests(config_parser_test WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/tests)
 
 # TODO(!): Update test executable name, srcs, and deps
 # add_executable(example_lib_test tests/example_lib_test.cc)
