@@ -44,6 +44,8 @@ target_link_libraries(server server_lib Boost::system config_parser_lib)
 add_executable(config_parser_test tests/config_parser_test.cc)
 target_link_libraries(config_parser_test config_parser_lib gtest_main)
 gtest_discover_tests(config_parser_test WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/tests)
+find_program(BASH_PROGRAM bash)
+add_test(NAME integration_test COMMAND ${BASH_PROGRAM} ${CMAKE_CURRENT_SOURCE_DIR}/tests/integration_test.sh)
 
 # TODO(!): Update test executable name, srcs, and deps
 # add_executable(example_lib_test tests/example_lib_test.cc)
