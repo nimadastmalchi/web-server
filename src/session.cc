@@ -49,7 +49,7 @@ void session::handle_read(const boost::system::error_code& error,
             response_ = response_code + content_type + content + "\r\n";
             boost::asio::async_write(socket_, 
                 boost::asio::buffer(response_, response_.size()),
-                boost::bind(&session::handle_write, this,
+                boost::bind(&session::close_socket, this,
                 boost::asio::placeholders::error));
         // If we have not reached the end of the header, continue reading:
         } else {
@@ -64,16 +64,13 @@ void session::handle_read(const boost::system::error_code& error,
     }
 }
 
-void session::handle_write(const boost::system::error_code& error) {
+void session::close_socket(const boost::system::error_code& error) {
     if (!error) {
         // Upon writing, reset all instance variables:
         memset(data_, 0, bytes_read_);
         bytes_read_ = 0;
 
-        socket_.async_read_some(boost::asio::buffer(data_ + bytes_read_, max_length - bytes_read_),
-            boost::bind(&session::handle_read, this,
-            boost::asio::placeholders::error,
-            boost::asio::placeholders::bytes_transferred));
+        socket_.close();
     }
     else {
         delete this;

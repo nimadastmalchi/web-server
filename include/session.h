@@ -18,7 +18,7 @@ class session {
     private:
         void handle_read(const boost::system::error_code& error,
             size_t bytes_transferred);
-        void handle_write(const boost::system::error_code& error);
+        void close_socket(const boost::system::error_code& error);
 
         tcp::socket socket_;
 
