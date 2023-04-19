@@ -41,18 +41,21 @@ add_executable(server src/server_main.cc)
 target_link_libraries(server server_lib Boost::system config_parser_lib)
 
 # Compile and link tests
+# Unit Tests (runs via `make test`)
 add_executable(config_parser_test tests/config_parser_test.cc)
 target_link_libraries(config_parser_test config_parser_lib gtest_main)
 gtest_discover_tests(config_parser_test WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/tests)
+
+# Integration Tests (runs via `make test`)
 find_program(BASH_PROGRAM bash)
 add_test(NAME integration_test COMMAND ${BASH_PROGRAM} ${CMAKE_CURRENT_SOURCE_DIR}/tests/integration_test.sh)
 
-# TODO(!): Update test executable name, srcs, and deps
-# add_executable(example_lib_test tests/example_lib_test.cc)
-# target_link_libraries(example_lib_test example_lib gtest_main)
-
-# TODO(!): Update with test binary
-# gtest_discover_tests(example_lib_test WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/tests)
+# End to end Tests (runs via `make e2e`)
+add_custom_target(e2e
+  COMMAND ${BASH_PROGRAM} ${CMAKE_CURRENT_SOURCE_DIR}/tests/e2e_test.sh
+  WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
+  COMMENT "Running end-to-end tests"
+)
 
 # TODO(!): Update with target/test targets
 # include(cmake/CodeCoverageReportConfig.cmake)
