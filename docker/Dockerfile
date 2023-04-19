@@ -10,6 +10,7 @@ WORKDIR /usr/src/project/build
 RUN cmake ..
 RUN make
 RUN ctest --output-on_failure
+RUN make test
 
 
 ### Deploy container ###
