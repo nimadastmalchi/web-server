@@ -1,4 +1,4 @@
-DELAY=1 # how long to wait for each curl request
+DELAY=1 # How long to wait for each curl request
 EXPOSED_PORT=80
 
 # Store host IP

@@ -44,7 +44,9 @@ int main(int argc, char* argv[])
     }
 
     boost::asio::io_service io_service;
-    server s(io_service, port);
+    tcp::endpoint endpoint = tcp::endpoint(tcp::v4(), port);
+    tcp::acceptor acceptor = tcp::acceptor(io_service, endpoint);
+    server s(io_service, acceptor);
     io_service.run();
   }
   catch (std::exception& e) {

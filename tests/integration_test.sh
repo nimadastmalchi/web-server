@@ -1,6 +1,6 @@
 PATH_TO_BIN="../build/bin/server"
 PATH_TO_CONFIG="../src/server_config"
-DELAY=1 # how long to wait for each curl request
+DELAY=1 # How long to wait for each curl request
 EXPOSED_PORT=80
 
 # Store host IP
