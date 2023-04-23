@@ -1,3 +1,4 @@
+#include "response_builder.h"
 #include "server.h"
 
 #include <cstdlib>
@@ -8,14 +9,18 @@
 
 using boost::asio::ip::tcp;
 
-server::server(boost::asio::io_service& io_service, tcp::acceptor& acceptor)
-    : io_service_(io_service), acceptor_(acceptor)
+server::server(boost::asio::io_service& io_service,
+        tcp::acceptor& acceptor,
+        ResponseBuilder& response_builder)
+    : io_service_(io_service),
+      acceptor_(acceptor),
+      response_builder_(response_builder)
 {
     start_accept();
 }
 
 void server::start_accept() {
-    session* new_session = new session(io_service_);
+    session* new_session = new session(io_service_, response_builder_);
     acceptor_.async_accept(new_session->socket(),
         boost::bind(&server::handle_accept, this, new_session,
         boost::asio::placeholders::error));

@@ -36,9 +36,9 @@ include_directories(include)
 
 # Compile and link server executable
 add_library(config_parser_lib src/config_parser.cc)
-add_library(server_lib src/server.cc src/session.cc)
+add_library(server_lib src/server.cc src/session.cc src/response_builder.cc)
 add_executable(server src/server_main.cc)
-target_link_libraries(server server_lib Boost::system config_parser_lib)
+target_link_libraries(server server_lib config_parser_lib Boost::system)
 
 # Compile and link tests
 # Unit Tests (runs via `make test`)
