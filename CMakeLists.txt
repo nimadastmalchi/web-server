@@ -57,6 +57,5 @@ add_custom_target(e2e
   COMMENT "Running end-to-end tests"
 )
 
-# TODO(!): Update with target/test targets
-# include(cmake/CodeCoverageReportConfig.cmake)
-# generate_coverage_report(TARGETS example_server example_lib TESTS example_lib_test)
+include(cmake/CodeCoverageReportConfig.cmake)
+generate_coverage_report(TARGETS server server_lib config_parser_lib TESTS config_parser_test)
