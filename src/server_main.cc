@@ -49,7 +49,11 @@ int main(int argc, char* argv[])
     tcp::endpoint endpoint = tcp::endpoint(tcp::v4(), port);
     tcp::acceptor acceptor = tcp::acceptor(io_service, endpoint);
     
-    server s(io_service, acceptor, response_builder);
+    server server(io_service, acceptor, response_builder,
+        [](boost::asio::io_service& io_service, ResponseBuilder& response_builder) -> session* {
+            return new session(io_service, response_builder);
+        }
+    );
     io_service.run();
   }
   catch (std::exception& e) {
