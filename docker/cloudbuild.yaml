@@ -23,4 +23,11 @@ steps:
     '-t', 'gcr.io/$PROJECT_ID/a2-team-please-adopt-me-nima:latest',
     '.'
   ]
+- name: 'gcr.io/cloud-builders/docker'
+  args: [
+    'build',
+    '-f', 'docker/coverage.Dockerfile',
+    '-t', 'gcr.io/$PROJECT_ID/a2-team-please-adopt-me-nima:coverage',
+    '.'
+  ]
 images: ['gcr.io/$PROJECT_ID/a2-team-please-adopt-me-nima:base', 'gcr.io/$PROJECT_ID/a2-team-please-adopt-me-nima:latest']
