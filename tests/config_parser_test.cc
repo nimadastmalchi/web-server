@@ -49,6 +49,16 @@ TEST_F(NginxConfigParserTest, StringEscaping) {
   EXPECT_TRUE(success);
 }
 
+TEST_F(NginxConfigParserTest, CommentOnlyBlockConfig) {
+  bool success = parser_.Parse("pass_test8", &out_config_);
+  EXPECT_TRUE(success);
+}
+
+TEST_F(NginxConfigParserTest, NonexistentConfig) {
+  bool success = parser_.Parse("does not exist", &out_config_);
+  EXPECT_FALSE(success);
+}
+
 TEST_F(NginxConfigParserTest, MissingClosingQuote) {
   bool success = parser_.Parse("fail_test1", &out_config_);
   EXPECT_FALSE(success);
@@ -76,5 +86,15 @@ TEST_F(NginxConfigParserTest, MissingClosingBracket) {
 
 TEST_F(NginxConfigParserTest, MissingWhiteSpaceAfterQuote) {
   bool success = parser_.Parse("fail_test6", &out_config_);
+  EXPECT_FALSE(success);
+}
+
+TEST_F(NginxConfigParserTest, SemicolonAfterCommentConfig) {
+  bool success = parser_.Parse("fail_test7", &out_config_);
+  EXPECT_FALSE(success);
+}
+
+TEST_F(NginxConfigParserTest, UnmatchedDoubleQuoteConfig) {
+  bool success = parser_.Parse("fail_test8", &out_config_);
   EXPECT_FALSE(success);
 }

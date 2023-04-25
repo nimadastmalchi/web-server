@@ -1,0 +1,3 @@
+server {
+    test "hello this is incorrectly quoted
+}
