@@ -62,4 +62,4 @@ add_custom_target(e2e
 )
 
 include(cmake/CodeCoverageReportConfig.cmake)
-generate_coverage_report(TARGETS server server_lib config_parser_lib TESTS config_parser_test)
+generate_coverage_report(TARGETS server server_lib config_parser_lib TESTS config_parser_test response_builder_test)
