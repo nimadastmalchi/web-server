@@ -51,7 +51,8 @@ int main(int argc, char* argv[])
     
     server server(io_service, acceptor, response_builder,
         [](boost::asio::io_service& io_service, ResponseBuilder& response_builder) -> session* {
-            return new session(io_service, response_builder);
+            tcp::socket socket(io_service);
+            return new session(std::move(socket), response_builder);
         }
     );
     io_service.run();

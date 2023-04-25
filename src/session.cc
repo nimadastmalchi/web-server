@@ -9,9 +9,9 @@
 
 using boost::asio::ip::tcp;
 
-session::session(boost::asio::io_service& io_service,
+session::session(tcp::socket socket,
         ResponseBuilder& response_builder)
-    : socket_(io_service),
+    : socket_(std::move(socket)),
       response_builder_(response_builder),
       bytes_read_(0)
 {}

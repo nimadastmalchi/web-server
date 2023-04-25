@@ -13,7 +13,7 @@ using boost::asio::ip::tcp;
 
 class session {
     public:
-        session(boost::asio::io_service& io_service,
+        session(tcp::socket socket,
             ResponseBuilder& response_builder);
         tcp::socket& socket();
         void start();
