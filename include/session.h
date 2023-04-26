@@ -18,6 +18,8 @@ class session {
         tcp::socket& socket();
         void start();
 
+        friend class SessionTest;
+        
     private:
         int handle_read(const boost::system::error_code& error,
             size_t bytes_transferred);
