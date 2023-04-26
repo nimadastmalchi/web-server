@@ -18,6 +18,9 @@ class server {
             tcp::acceptor& acceptor,
             ResponseBuilder& response_builder,
             std::function<session*(boost::asio::io_service&, ResponseBuilder&)> make_session);
+        
+        friend class ServerTest;
+
     private:
         void start_accept();
         void handle_accept(session* new_session,

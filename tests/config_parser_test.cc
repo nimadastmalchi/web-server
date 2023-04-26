@@ -98,3 +98,14 @@ TEST_F(NginxConfigParserTest, UnmatchedDoubleQuoteConfig) {
   bool success = parser_.Parse("fail_test8", &out_config_);
   EXPECT_FALSE(success);
 }
+
+TEST_F(NginxConfigParserTest, PortParseConfig) {
+  bool success = parser_.Parse("pass_test9", &out_config_);
+  EXPECT_TRUE(success);
+
+  int port = out_config_.getPort();
+  EXPECT_EQ(port, 80);
+
+  std::string repr = out_config_.ToString();
+  EXPECT_EQ(repr, "server {\n  port 80;\n}\n");
+}

@@ -54,6 +54,10 @@ add_executable(session_test tests/session_test.cc)
 target_link_libraries(session_test server_lib gtest_main)
 gtest_discover_tests(session_test WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/tests)
 
+add_executable(server_test tests/server_test.cc)
+target_link_libraries(server_test server_lib gtest_main)
+gtest_discover_tests(server_test WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/tests)
+
 # Integration Tests (runs via `make test`)
 find_program(BASH_PROGRAM bash)
 add_test(NAME integration_test COMMAND ${BASH_PROGRAM} ${CMAKE_CURRENT_SOURCE_DIR}/tests/integration_test.sh)
@@ -66,4 +70,4 @@ add_custom_target(e2e
 )
 
 include(cmake/CodeCoverageReportConfig.cmake)
-generate_coverage_report(TARGETS server server_lib config_parser_lib TESTS config_parser_test response_builder_test session_test)
+generate_coverage_report(TARGETS server server_lib config_parser_lib TESTS config_parser_test response_builder_test session_test server_test)
