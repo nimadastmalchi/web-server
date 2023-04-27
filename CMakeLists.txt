@@ -36,27 +36,32 @@ include_directories(include)
 
 # Compile and link server executable
 add_library(config_parser_lib src/config_parser.cc)
+add_library(logger_lib src/logger.cc)
 add_library(server_lib src/server.cc src/session.cc src/response_builder.cc)
 add_executable(server src/server_main.cc)
-target_link_libraries(server server_lib config_parser_lib Boost::system)
+target_link_libraries(server server_lib config_parser_lib logger_lib Boost::system)
 
 # Compile and link tests
 # Unit Tests (runs via `make test`)
 add_executable(config_parser_test tests/config_parser_test.cc)
-target_link_libraries(config_parser_test config_parser_lib gtest_main)
+target_link_libraries(config_parser_test config_parser_lib logger_lib gtest_main)
 gtest_discover_tests(config_parser_test WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/tests)
 
 add_executable(response_builder_test tests/response_builder_test.cc)
-target_link_libraries(response_builder_test server_lib gtest_main)
+target_link_libraries(response_builder_test logger_lib server_lib gtest_main)
 gtest_discover_tests(response_builder_test WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/tests)
 
 add_executable(session_test tests/session_test.cc)
-target_link_libraries(session_test server_lib gtest_main)
+target_link_libraries(session_test logger_lib server_lib gtest_main)
 gtest_discover_tests(session_test WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/tests)
 
 add_executable(server_test tests/server_test.cc)
-target_link_libraries(server_test server_lib gtest_main)
+target_link_libraries(server_test logger_lib server_lib gtest_main)
 gtest_discover_tests(server_test WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/tests)
+
+add_executable(logger_test tests/logger_test.cc)
+target_link_libraries(logger_test logger_lib gtest_main)
+gtest_discover_tests(logger_test WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/tests)
 
 # Integration Tests (runs via `make test`)
 find_program(BASH_PROGRAM bash)
@@ -70,4 +75,4 @@ add_custom_target(e2e
 )
 
 include(cmake/CodeCoverageReportConfig.cmake)
-generate_coverage_report(TARGETS server server_lib config_parser_lib TESTS config_parser_test response_builder_test session_test server_test)
+generate_coverage_report(TARGETS server server_lib config_parser_lib logger_lib TESTS config_parser_test logger_test response_builder_test session_test server_test )
