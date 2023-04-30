@@ -54,6 +54,31 @@ TEST_F(NginxConfigParserTest, CommentOnlyBlockConfig) {
   EXPECT_TRUE(success);
 }
 
+TEST_F(NginxConfigParserTest, PortParseConfig) {
+  bool success = parser_.Parse("pass_test9", &out_config_);
+  EXPECT_TRUE(success);
+
+  int port = out_config_.getPort();
+  EXPECT_EQ(port, 80);
+
+  std::string repr = out_config_.ToString();
+  EXPECT_EQ(repr, "server {\n  port 80;\n}\n");
+}
+
+TEST_F(NginxConfigParserTest, LocationParseConfig) {
+  bool success = parser_.Parse("pass_test10", &out_config_);
+  EXPECT_TRUE(success);
+
+  std::vector<LocationBlock> blocks = out_config_.getLocationBlocks();
+  EXPECT_EQ(blocks.size(), 2);
+  EXPECT_EQ(blocks[0].handler_, "StaticHandler");
+  EXPECT_EQ(blocks[0].uri_, "/static/");
+  EXPECT_EQ(blocks[0].root_, "/foo/bar");
+  EXPECT_EQ(blocks[1].handler_, "EchoHandler");
+  EXPECT_EQ(blocks[1].uri_, "/echo/");
+  EXPECT_EQ(blocks[1].root_, "/");
+}
+
 TEST_F(NginxConfigParserTest, NonexistentConfig) {
   bool success = parser_.Parse("does not exist", &out_config_);
   EXPECT_FALSE(success);
@@ -99,13 +124,3 @@ TEST_F(NginxConfigParserTest, UnmatchedDoubleQuoteConfig) {
   EXPECT_FALSE(success);
 }
 
-TEST_F(NginxConfigParserTest, PortParseConfig) {
-  bool success = parser_.Parse("pass_test9", &out_config_);
-  EXPECT_TRUE(success);
-
-  int port = out_config_.getPort();
-  EXPECT_EQ(port, 80);
-
-  std::string repr = out_config_.ToString();
-  EXPECT_EQ(repr, "server {\n  port 80;\n}\n");
-}

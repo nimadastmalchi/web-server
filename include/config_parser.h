@@ -15,12 +15,21 @@ class NginxConfigStatement {
   std::unique_ptr<NginxConfig> child_block_;
 };
 
+// The parsed representation of location block.
+class LocationBlock {
+ public:
+  std::string uri_;
+  std::string handler_; // e.g., "StaticHandler", "EchoHandler"
+  std::string root_;
+};
+
 // The parsed representation of the entire config.
 class NginxConfig {
  public:
   std::string ToString(int depth = 0);
   std::vector<std::shared_ptr<NginxConfigStatement>> statements_;
   int getPort();
+  std::vector<LocationBlock> getLocationBlocks();
 };
 
 // The driver that parses a config file and generates an NginxConfig.

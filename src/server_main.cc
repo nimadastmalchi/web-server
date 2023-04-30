@@ -43,8 +43,9 @@ int main(int argc, char* argv[])
       return -1;
     }
 
-    ResponseBuilder response_builder;
+    std::vector<LocationBlock> location_blocks = config.getLocationBlocks();
 
+    ResponseBuilder response_builder;
     boost::asio::io_service io_service;
     tcp::endpoint endpoint = tcp::endpoint(tcp::v4(), port);
     tcp::acceptor acceptor = tcp::acceptor(io_service, endpoint);

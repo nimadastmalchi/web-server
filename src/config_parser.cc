@@ -72,6 +72,39 @@ int NginxConfig::getPort() {
   return -1;  // Ret type should be int to cover -1
 }
 
+// Return a vector of LocationBlock structs, representing the location blocks
+// in the server block in the config file.
+std::vector<LocationBlock> NginxConfig::getLocationBlocks() {
+  std::vector<LocationBlock> blocks;
+  for (auto statement : statements_) {
+    if (statement->tokens_.size() == 1 &&
+        statement->tokens_[0] == "server") {
+      for (auto child_statement : statement->child_block_->statements_) {
+        if (child_statement->tokens_.size() < 3) {
+          continue;
+        }
+        if (child_statement->tokens_[0] != "location") {
+          continue;
+        }
+        LocationBlock block;
+        block.uri_ = child_statement->tokens_[1];
+        block.handler_ = child_statement->tokens_[2];
+        block.root_ = "/";
+        for (auto child_child_statement : child_statement->child_block_->statements_) {
+          if (child_child_statement->tokens_.size() == 2 &&
+              child_child_statement->tokens_[0] == "root") {
+            block.root_ = child_child_statement->tokens_[1];
+            break;
+          }
+        }
+        blocks.push_back(std::move(block));
+      }
+    }
+    break;
+  }
+  return std::move(blocks);
+}
+
 const char* NginxConfigParser::TokenTypeAsString(TokenType type) {
   switch (type) {
     case TOKEN_TYPE_START:         return "TOKEN_TYPE_START";
