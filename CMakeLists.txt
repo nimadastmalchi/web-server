@@ -29,7 +29,7 @@ add_subdirectory(/usr/src/googletest googletest)
 # Enable Boost
 # Use static libraries so binaries can be deployed without a full boost install
 set(Boost_USE_STATIC_LIBS ON)
-find_package(Boost 1.50 REQUIRED COMPONENTS system)
+find_package(Boost 1.50 REQUIRED COMPONENTS log_setup log system)
 message(STATUS "Boost version: ${Boost_VERSION}")
 
 include_directories(include)
@@ -39,7 +39,7 @@ add_library(config_parser_lib src/config_parser.cc)
 add_library(logger_lib src/logger.cc)
 add_library(server_lib src/server.cc src/session.cc src/response_builder.cc)
 add_executable(server src/server_main.cc)
-target_link_libraries(server server_lib config_parser_lib logger_lib Boost::system)
+target_link_libraries(server server_lib config_parser_lib logger_lib Boost::system Boost::log_setup Boost::log)
 
 # Compile and link tests
 # Unit Tests (runs via `make test`)
@@ -60,7 +60,7 @@ target_link_libraries(server_test logger_lib server_lib gtest_main)
 gtest_discover_tests(server_test WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/tests)
 
 add_executable(logger_test tests/logger_test.cc)
-target_link_libraries(logger_test logger_lib gtest_main)
+target_link_libraries(logger_test logger_lib gtest_main Boost::log_setup Boost::log)
 gtest_discover_tests(logger_test WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/tests)
 
 # Integration Tests (runs via `make test`)
