@@ -37,7 +37,7 @@ include_directories(include)
 # Compile and link server executable
 add_library(config_parser_lib src/config_parser.cc)
 add_library(logger_lib src/logger.cc)
-add_library(server_lib src/server.cc src/session.cc src/response_builder.cc)
+add_library(server_lib src/server.cc src/session.cc src/response_builder.cc src/http_request.cc)
 add_executable(server src/server_main.cc)
 target_link_libraries(server server_lib config_parser_lib logger_lib Boost::system Boost::log_setup Boost::log)
 
@@ -62,6 +62,10 @@ gtest_discover_tests(server_test WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/t
 add_executable(logger_test tests/logger_test.cc)
 target_link_libraries(logger_test logger_lib gtest_main Boost::log_setup Boost::log)
 gtest_discover_tests(logger_test WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/tests)
+
+add_executable(http_request_test tests/http_request_test.cc)
+target_link_libraries(http_request_test logger_lib server_lib gtest_main)
+gtest_discover_tests(http_request_test WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/tests)
 
 # Integration Tests (runs via `make test`)
 find_program(BASH_PROGRAM bash)

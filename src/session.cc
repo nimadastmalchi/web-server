@@ -1,3 +1,4 @@
+#include "http_request.h"
 #include "response_builder.h"
 #include "session.h"
 
@@ -6,6 +7,8 @@
 
 #include <boost/asio.hpp>
 #include <boost/bind.hpp>
+
+#include <string>
 
 using boost::asio::ip::tcp;
 
@@ -42,6 +45,19 @@ int session::handle_read(const boost::system::error_code& error,
 
         // If we have received the entire header, write the response:
         if (response_builder_.formatResponse(data_, delimiter, response_code, content_type)) {
+            // WIP -- Parse the request:
+            http_request req;
+            if (http_request::parseRequest(req, std::string(data_))) {
+                std::cout << "HTTP Header" << std::endl;
+                std::cout << "\tMethod: " << req.method << std::endl;
+                std::cout << "\tURI: " << req.uri << std::endl;
+                std::cout << "\tMajor version: " << req.http_version_major << std::endl;
+                std::cout << "\tMinor version: " << req.http_version_minor << std::endl;
+                for (auto header : req.headers) {
+                    std::cout << "\t" << header.name << ": " << header.value << std::endl;
+                }
+            }
+
             std::string response = response_builder_.getResponse();
             boost::asio::async_write(socket_,
                 boost::asio::buffer(response, response.size()),
