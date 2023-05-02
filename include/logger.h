@@ -4,26 +4,28 @@
 #include <memory>
 
 class Logger {
-  public:
-    struct RotationTime {
-        int hour;
-        int minute;
-        int second;
+    public: 
 
-        RotationTime(int hour, int minute, int second): hour(hour), minute(minute), second(second) { }
-    };
+        struct RotationTime {
+            int hour;
+            int minute;
+            int second;
 
-    Logger();
-    void init(std::string file_name, int rotation_size, RotationTime rotation_time);
-    void log_trace(std::string msg);
-    void log_debug(std::string msg);
-    void log_info(std::string msg);
-    void log_warn(std::string msg);
-    void log_error(std::string msg);
-    static std::shared_ptr<Logger> logger();
+            RotationTime(int hour, int minute, int second): hour(hour), minute(minute), second(second) { }
+        };
 
-  private:
-    static std::shared_ptr<Logger> logger_;
+        Logger();
+        void init(std::string file_name, int rotation_size, RotationTime rotation_time);
+        void log_trace(std::string msg);
+        void log_debug(std::string msg);
+        void log_info(std::string msg);
+        void log_warn(std::string msg);
+        void log_error(std::string msg);
+        static std::shared_ptr<Logger> logger();
+  
+    private:
+  
+        static std::shared_ptr<Logger> logger_;
 };
 
 #endif
