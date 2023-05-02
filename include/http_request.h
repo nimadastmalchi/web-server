@@ -1,3 +1,6 @@
+#ifndef HTTP_RESONSE_H
+#define HTTP_RESONSE_H
+
 #include <string>
 #include <vector>
 
@@ -22,3 +25,5 @@ class http_request {
         // populated.
         static bool parseRequest(http_request& req, const std::string& req_str);
 };
+
+#endif

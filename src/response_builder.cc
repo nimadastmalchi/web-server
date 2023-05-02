@@ -2,6 +2,9 @@
 
 #include <cstring>
 #include <iostream>
+#include <string>
+
+#include "http_request.h"
 
 ResponseBuilder::ResponseBuilder() : response_("") {}
 
@@ -24,7 +27,7 @@ int ResponseBuilder::formatResponse(char data[], const std::string& delimiter,
 
         // Construct the response:
         response_ = response_code + content_type + content + "\r\n";
-
+        std::cerr << content << std::endl;
         return 1;
     }
 

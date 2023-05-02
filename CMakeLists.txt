@@ -37,7 +37,7 @@ include_directories(include)
 # Compile and link server executable
 add_library(config_parser_lib src/config_parser.cc)
 add_library(logger_lib src/logger.cc)
-add_library(server_lib src/server.cc src/session.cc src/response_builder.cc src/http_request.cc)
+add_library(server_lib src/server.cc src/session.cc src/response_builder.cc src/http_request.cc src/echo_request_handler.cc)
 add_executable(server src/server_main.cc)
 target_link_libraries(server server_lib config_parser_lib logger_lib Boost::system Boost::log_setup Boost::log)
 
@@ -67,6 +67,10 @@ add_executable(http_request_test tests/http_request_test.cc)
 target_link_libraries(http_request_test logger_lib server_lib gtest_main)
 gtest_discover_tests(http_request_test WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/tests)
 
+add_executable(echo_request_handler_test tests/echo_request_handler_test.cc)
+target_link_libraries(echo_request_handler_test logger_lib server_lib gtest_main)
+gtest_discover_tests(echo_request_handler_test WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/tests)
+
 # Integration Tests (runs via `make test`)
 find_program(BASH_PROGRAM bash)
 add_test(NAME integration_test COMMAND ${BASH_PROGRAM} ${CMAKE_CURRENT_SOURCE_DIR}/tests/integration_test.sh)
@@ -86,4 +90,4 @@ add_custom_target(init_githooks
 )
 
 include(cmake/CodeCoverageReportConfig.cmake)
-generate_coverage_report(TARGETS server server_lib config_parser_lib logger_lib TESTS config_parser_test http_request_test logger_test response_builder_test session_test server_test )
+generate_coverage_report(TARGETS server server_lib config_parser_lib logger_lib TESTS config_parser_test http_request_test logger_test response_builder_test session_test server_test echo_request_handler_test)
