@@ -1,11 +1,14 @@
 #include "logger.h"
 
+#include <boost/asio.hpp>
 #include <boost/regex.hpp>
 #include <boost/thread/thread.hpp>
 #include <filesystem>
 #include <regex>
 
 #include "gtest/gtest.h"
+
+using boost::asio::ip::tcp;
 
 class LoggerTest : public ::testing::Test {
     protected:
@@ -23,14 +26,17 @@ struct LogSplit {
         std::string timestamp;
         std::string thread_id;
         std::string sev;
+        std::string client_info;
         std::string msg;
 };
 
 LogSplit split_log(std::string log) {
-    boost::regex log_regex{"\\[(.+)\\] \\(Thread: (.+)\\) \\[(.*)\\]: (.+)\n"};
+    boost::regex log_regex{
+        "\\[(.+)\\] \\(Thread: (.+)\\) \\[(.*)\\]:(?: \\[Client: (.*)\\])? "
+        "(.+)\n"};
     boost::smatch match;
     boost::regex_match(log, match, log_regex);
-    return LogSplit{match[1], match[2], match[3], match[4]};
+    return LogSplit{match[1], match[2], match[3], match[4], match[5]};
 }
 
 TEST_F(LoggerTest, LogTrace) {
@@ -81,4 +87,64 @@ TEST_F(LoggerTest, LogError) {
     auto log_components = split_log(output);
     EXPECT_EQ(log_components.msg, msg);
     EXPECT_EQ(log_components.sev, "error");
+}
+
+TEST_F(LoggerTest, LogTraceSocket) {
+    std::string msg = "Test";
+    boost::asio::io_service io_service;
+    Logger::log_trace(tcp::socket(io_service), msg);
+    std::string output = testing::internal::GetCapturedStdout();
+    std::cout << output << std::endl;
+    auto log_components = split_log(output);
+    EXPECT_EQ(log_components.msg, msg);
+    EXPECT_EQ(log_components.sev, "trace");
+    EXPECT_EQ(log_components.client_info, "Closed Socket");
+}
+
+TEST_F(LoggerTest, LogDebugSocket) {
+    std::string msg = "Test";
+    boost::asio::io_service io_service;
+    Logger::log_debug(tcp::socket(io_service), msg);
+    std::string output = testing::internal::GetCapturedStdout();
+    std::cout << output << std::endl;
+    auto log_components = split_log(output);
+    EXPECT_EQ(log_components.msg, msg);
+    EXPECT_EQ(log_components.sev, "debug");
+    EXPECT_EQ(log_components.client_info, "Closed Socket");
+}
+
+TEST_F(LoggerTest, LogInfoSocket) {
+    std::string msg = "Test";
+    boost::asio::io_service io_service;
+    Logger::log_info(tcp::socket(io_service), msg);
+    std::string output = testing::internal::GetCapturedStdout();
+    std::cout << output << std::endl;
+    auto log_components = split_log(output);
+    EXPECT_EQ(log_components.msg, msg);
+    EXPECT_EQ(log_components.sev, "info");
+    EXPECT_EQ(log_components.client_info, "Closed Socket");
+}
+
+TEST_F(LoggerTest, LogWarnSocket) {
+    std::string msg = "Test";
+    boost::asio::io_service io_service;
+    Logger::log_warn(tcp::socket(io_service), msg);
+    std::string output = testing::internal::GetCapturedStdout();
+    std::cout << output << std::endl;
+    auto log_components = split_log(output);
+    EXPECT_EQ(log_components.msg, msg);
+    EXPECT_EQ(log_components.sev, "warning");
+    EXPECT_EQ(log_components.client_info, "Closed Socket");
+}
+
+TEST_F(LoggerTest, LogErrorSocket) {
+    std::string msg = "Test";
+    boost::asio::io_service io_service;
+    Logger::log_error(tcp::socket(io_service), msg);
+    std::string output = testing::internal::GetCapturedStdout();
+    std::cout << output << std::endl;
+    auto log_components = split_log(output);
+    EXPECT_EQ(log_components.msg, msg);
+    EXPECT_EQ(log_components.sev, "error");
+    EXPECT_EQ(log_components.client_info, "Closed Socket");
 }
