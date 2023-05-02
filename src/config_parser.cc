@@ -17,6 +17,8 @@
 #include <string>
 #include <vector>
 
+#include "logger.h"
+
 std::string NginxConfig::ToString(int depth) {
     std::string serialized_config;
     for (const auto& statement : statements_) {
@@ -322,6 +324,7 @@ bool NginxConfigParser::Parse(std::istream* config_file, NginxConfig* config) {
                 // Error.
                 break;
             }
+            Logger::log_trace("Successfully parsed server configuration file");
             return true;
         } else {
             // Error. Unknown token.
@@ -332,6 +335,10 @@ bool NginxConfigParser::Parse(std::istream* config_file, NginxConfig* config) {
 
     printf("Bad transition from %s to %s\n", TokenTypeAsString(last_token_type),
            TokenTypeAsString(token_type));
+    Logger::log_debug("NginxConfigParser: bad transition from " +
+                      std::string(TokenTypeAsString(last_token_type)) + " to " +
+                      std::string(TokenTypeAsString(token_type)));
+    Logger::log_error("Failed to parse server configuration file");
     return false;
 }
 
@@ -339,9 +346,13 @@ bool NginxConfigParser::Parse(const char* file_name, NginxConfig* config) {
     std::ifstream config_file;
     config_file.open(file_name);
     if (!config_file.good()) {
-        printf("Failed to open config file: %s\n", file_name);
+        printf("Failed to open configuration file: %s\n", file_name);
+        Logger::log_error("Failed to open configuration file: " +
+                          std::string(file_name));
         return false;
     }
+
+    Logger::log_trace("Parsing server configuration file");
 
     const bool return_value =
         Parse(dynamic_cast<std::istream*>(&config_file), config);

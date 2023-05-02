@@ -6,6 +6,7 @@
 #include <functional>
 #include <iostream>
 
+#include "logger.h"
 #include "response_builder.h"
 
 using boost::asio::ip::tcp;
@@ -24,6 +25,7 @@ server::server(
 
 void server::start_accept() {
     session* new_session = make_session_(io_service_, response_builder_);
+    Logger::log_trace("Opened new session");
     acceptor_.async_accept(
         new_session->socket(),
         boost::bind(&server::handle_accept, this, new_session,
@@ -35,6 +37,7 @@ void server::handle_accept(session* new_session,
     if (!error) {
         new_session->start();
     } else {
+        Logger::log_error("Error opening new session");
         delete new_session;
     }
 

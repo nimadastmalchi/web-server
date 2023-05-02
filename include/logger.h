@@ -15,17 +15,13 @@ class Logger {
         };
 
         Logger();
-        void init(std::string file_name, int rotation_size,
-                  RotationTime rotation_time);
-        void log_trace(std::string msg);
-        void log_debug(std::string msg);
-        void log_info(std::string msg);
-        void log_warn(std::string msg);
-        void log_error(std::string msg);
-        static std::shared_ptr<Logger> logger();
-
-    private:
-        static std::shared_ptr<Logger> logger_;
+        static void init_logger(std::string file_name, int rotation_size,
+                                RotationTime rotation_time);
+        static void log_trace(std::string msg);
+        static void log_debug(std::string msg);
+        static void log_info(std::string msg);
+        static void log_warn(std::string msg);
+        static void log_error(std::string msg);
 };
 
 #endif

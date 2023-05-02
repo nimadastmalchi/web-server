@@ -12,7 +12,7 @@ class LoggerTest : public ::testing::Test {
         void SetUp() override {
             // 10 * 1024 * 1024 = 10MB rotation size
             // 0, 0, 0 = 12:00:00 rotation time
-            Logger::logger()->init("test.log", 10 * 1024 * 1024, {0, 0, 0});
+            Logger::init_logger("test.log", 10 * 1024 * 1024, {0, 0, 0});
             testing::internal::CaptureStdout();
         }
 
@@ -33,13 +33,9 @@ LogSplit split_log(std::string log) {
     return LogSplit{match[1], match[2], match[3], match[4]};
 }
 
-TEST_F(LoggerTest, SingletonLoggerCreated) {
-    EXPECT_EQ(Logger::logger(), Logger::logger());
-}
-
 TEST_F(LoggerTest, LogTrace) {
     std::string msg = "Test";
-    Logger::logger()->log_trace(msg);
+    Logger::log_trace(msg);
     std::string output = testing::internal::GetCapturedStdout();
     std::cout << output << std::endl;
     auto log_components = split_log(output);
@@ -49,7 +45,7 @@ TEST_F(LoggerTest, LogTrace) {
 
 TEST_F(LoggerTest, LogDebug) {
     std::string msg = "Test";
-    Logger::logger()->log_debug(msg);
+    Logger::log_debug(msg);
     std::string output = testing::internal::GetCapturedStdout();
     std::cout << output << std::endl;
     auto log_components = split_log(output);
@@ -59,7 +55,7 @@ TEST_F(LoggerTest, LogDebug) {
 
 TEST_F(LoggerTest, LogInfo) {
     std::string msg = "Test";
-    Logger::logger()->log_info(msg);
+    Logger::log_info(msg);
     std::string output = testing::internal::GetCapturedStdout();
     std::cout << output << std::endl;
     auto log_components = split_log(output);
@@ -69,7 +65,7 @@ TEST_F(LoggerTest, LogInfo) {
 
 TEST_F(LoggerTest, LogWarn) {
     std::string msg = "Test";
-    Logger::logger()->log_warn(msg);
+    Logger::log_warn(msg);
     std::string output = testing::internal::GetCapturedStdout();
     std::cout << output << std::endl;
     auto log_components = split_log(output);
@@ -79,7 +75,7 @@ TEST_F(LoggerTest, LogWarn) {
 
 TEST_F(LoggerTest, LogError) {
     std::string msg = "Test";
-    Logger::logger()->log_error(msg);
+    Logger::log_error(msg);
     std::string output = testing::internal::GetCapturedStdout();
     std::cout << output << std::endl;
     auto log_components = split_log(output);

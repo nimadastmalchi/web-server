@@ -44,19 +44,19 @@ target_link_libraries(server server_lib config_parser_lib logger_lib Boost::syst
 # Compile and link tests
 # Unit Tests (runs via `make test`)
 add_executable(config_parser_test tests/config_parser_test.cc)
-target_link_libraries(config_parser_test config_parser_lib logger_lib gtest_main)
+target_link_libraries(config_parser_test config_parser_lib logger_lib gtest_main Boost::log_setup Boost::log)
 gtest_discover_tests(config_parser_test WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/tests)
 
 add_executable(response_builder_test tests/response_builder_test.cc)
-target_link_libraries(response_builder_test logger_lib server_lib gtest_main)
+target_link_libraries(response_builder_test logger_lib server_lib logger_lib gtest_main Boost::log_setup Boost::log)
 gtest_discover_tests(response_builder_test WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/tests)
 
 add_executable(session_test tests/session_test.cc)
-target_link_libraries(session_test logger_lib server_lib gtest_main)
+target_link_libraries(session_test logger_lib server_lib logger_lib gtest_main Boost::log_setup Boost::log)
 gtest_discover_tests(session_test WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/tests)
 
 add_executable(server_test tests/server_test.cc)
-target_link_libraries(server_test logger_lib server_lib gtest_main)
+target_link_libraries(server_test logger_lib server_lib logger_lib gtest_main Boost::log_setup Boost::log)
 gtest_discover_tests(server_test WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/tests)
 
 add_executable(logger_test tests/logger_test.cc)
