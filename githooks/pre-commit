@@ -1,0 +1,16 @@
+#! /bin/bash
+
+sudo apt-get -y install clang-format
+
+if ! clang-format -i -style="{BasedOnStyle: Google, IndentWidth: 4, TabWidth: 4, AccessModifierOffset: 0, IndentAccessModifiers: true}" include/*.h src/*.cc tests/*.cc; then
+    exit 1
+fi
+
+if ! docker build -f docker/base.Dockerfile -t a2-team-please-adopt-me-nima:base .; then
+    exit 1
+fi
+if ! docker build -f docker/coverage.Dockerfile .; then
+    exit 1
+fi
+
+exit 0

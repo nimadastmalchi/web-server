@@ -1,44 +1,40 @@
+#include "session.h"
+
+#include <boost/asio.hpp>
+#include <boost/bind.hpp>
 #include <cstdlib>
 #include <iostream>
 #include <string>
 
-#include <boost/asio.hpp>
-#include <boost/bind.hpp>
-
-#include "response_builder.h"
-#include "session.h"
 #include "gtest/gtest.h"
+#include "response_builder.h"
 
 using boost::asio::ip::tcp;
 
 class SessionTest : public ::testing::Test {
-  protected:
-    void SetUp() override {
-        io_service_.run();
-    }
+    protected:
+        void SetUp() override { io_service_.run(); }
 
-    ResponseBuilder response_builder_;
-    boost::asio::io_service io_service_;
-    session session_ = session(tcp::socket(io_service_), response_builder_);
-    const std::string delimiter_ = "\r\n\r\n";
-    const std::string response_code_ = "HTTP/1.1 200 0K\r\n";
-    const std::string content_type_ = "Content-Type: text/plain" + delimiter_;
-    
-    int close_(boost::system::error_code& error) {
-        return session_.close_socket(error);
-    }
+        ResponseBuilder response_builder_;
+        boost::asio::io_service io_service_;
+        session session_ = session(tcp::socket(io_service_), response_builder_);
+        const std::string delimiter_ = "\r\n\r\n";
+        const std::string response_code_ = "HTTP/1.1 200 0K\r\n";
+        const std::string content_type_ =
+            "Content-Type: text/plain" + delimiter_;
 
-    int read_(const boost::system::error_code& error, size_t bytes_transferred) {
-        return session_.handle_read(error, bytes_transferred);
-    }
+        int close_(boost::system::error_code& error) {
+            return session_.close_socket(error);
+        }
 
-    void write_(char* data) {
-        sprintf(session_.data_, "%s", data);
-    }
+        int read_(const boost::system::error_code& error,
+                  size_t bytes_transferred) {
+            return session_.handle_read(error, bytes_transferred);
+        }
 
-    size_t len_() {
-        return strlen(session_.data_);
-    }
+        void write_(char* data) { sprintf(session_.data_, "%s", data); }
+
+        size_t len_() { return strlen(session_.data_); }
 };
 
 TEST_F(SessionTest, IncompleteWrite) {
@@ -52,7 +48,9 @@ TEST_F(SessionTest, IncompleteWrite) {
 }
 
 TEST_F(SessionTest, CompleteWrite) {
-    char data[] = "HTTP/1.1 200 OK\r\nContent-Type: text/plain\r\n\r\nGET SOME DATA\r\n\r\n";
+    char data[] =
+        "HTTP/1.1 200 OK\r\nContent-Type: text/plain\r\n\r\nGET SOME "
+        "DATA\r\n\r\n";
     write_(data);
 
     boost::system::error_code error;

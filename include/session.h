@@ -1,11 +1,10 @@
 #ifndef SESSION_H
 #define SESSION_H
 
-#include <cstdlib>
-#include <iostream>
-
 #include <boost/asio.hpp>
 #include <boost/bind.hpp>
+#include <cstdlib>
+#include <iostream>
 
 #include "response_builder.h"
 
@@ -13,16 +12,15 @@ using boost::asio::ip::tcp;
 
 class session {
     public:
-        session(tcp::socket socket,
-            ResponseBuilder& response_builder);
+        session(tcp::socket socket, ResponseBuilder& response_builder);
         tcp::socket& socket();
         void start();
 
         friend class SessionTest;
-        
+
     private:
         int handle_read(const boost::system::error_code& error,
-            size_t bytes_transferred);
+                        size_t bytes_transferred);
         int close_socket(const boost::system::error_code& error);
 
         tcp::socket socket_;

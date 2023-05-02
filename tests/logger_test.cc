@@ -1,44 +1,36 @@
 #include "logger.h"
-#include "gtest/gtest.h"
 
 #include <boost/regex.hpp>
 #include <boost/thread/thread.hpp>
 #include <filesystem>
 #include <regex>
 
-class LoggerTest : public ::testing::Test {
-  protected:
-    void SetUp() override { 
-      	// 10 * 1024 * 1024 = 10MB rotation size
-      	// 0, 0, 0 = 12:00:00 rotation time
-        Logger::logger()->init("test.log", 10 * 1024 * 1024, {
-            0, 0, 0
-        });
-        testing::internal::CaptureStdout();
-    }
+#include "gtest/gtest.h"
 
-    void TearDown() {
-        std::filesystem::remove("test.log");
-    }
+class LoggerTest : public ::testing::Test {
+    protected:
+        void SetUp() override {
+            // 10 * 1024 * 1024 = 10MB rotation size
+            // 0, 0, 0 = 12:00:00 rotation time
+            Logger::logger()->init("test.log", 10 * 1024 * 1024, {0, 0, 0});
+            testing::internal::CaptureStdout();
+        }
+
+        void TearDown() { std::filesystem::remove("test.log"); }
 };
 
 struct LogSplit {
-    std::string timestamp;
-    std::string thread_id;
-    std::string sev;
-    std::string msg;
+        std::string timestamp;
+        std::string thread_id;
+        std::string sev;
+        std::string msg;
 };
 
 LogSplit split_log(std::string log) {
-    boost::regex log_regex {"\\[(.+)\\] \\(Thread: (.+)\\) \\[(.*)\\]: (.+)\n"};
+    boost::regex log_regex{"\\[(.+)\\] \\(Thread: (.+)\\) \\[(.*)\\]: (.+)\n"};
     boost::smatch match;
     boost::regex_match(log, match, log_regex);
-    return LogSplit {
-       match[1],
-       match[2],
-       match[3],
-       match[4]
-    };
+    return LogSplit{match[1], match[2], match[3], match[4]};
 }
 
 TEST_F(LoggerTest, SingletonLoggerCreated) {

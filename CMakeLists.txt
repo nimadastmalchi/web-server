@@ -78,5 +78,12 @@ add_custom_target(e2e
   COMMENT "Running end-to-end tests"
 )
 
+# Init the git hooks 
+add_custom_target(init_githooks
+  COMMAND git config core.hooksPath githooks && chmod +x githooks/*
+  WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
+  COMMENT "Initialize git hooks folder"
+)
+
 include(cmake/CodeCoverageReportConfig.cmake)
 generate_coverage_report(TARGETS server server_lib config_parser_lib logger_lib TESTS config_parser_test http_request_test logger_test response_builder_test session_test server_test )

@@ -1,33 +1,29 @@
-#include "http_request.h"
-#include "response_builder.h"
 #include "session.h"
-
-#include <cstdlib>
-#include <iostream>
 
 #include <boost/asio.hpp>
 #include <boost/bind.hpp>
-
+#include <cstdlib>
+#include <iostream>
 #include <string>
+
+#include "http_request.h"
+#include "response_builder.h"
 
 using boost::asio::ip::tcp;
 
-session::session(tcp::socket socket,
-        ResponseBuilder& response_builder)
+session::session(tcp::socket socket, ResponseBuilder& response_builder)
     : socket_(std::move(socket)),
       response_builder_(response_builder),
-      bytes_read_(0)
-{}
+      bytes_read_(0) {}
 
-tcp::socket& session::socket() {
-    return socket_;
-}
+tcp::socket& session::socket() { return socket_; }
 
 void session::start() {
-    socket_.async_read_some(boost::asio::buffer(data_ + bytes_read_, max_length - bytes_read_),
+    socket_.async_read_some(
+        boost::asio::buffer(data_ + bytes_read_, max_length - bytes_read_),
         boost::bind(&session::handle_read, this,
-        boost::asio::placeholders::error,
-        boost::asio::placeholders::bytes_transferred));
+                    boost::asio::placeholders::error,
+                    boost::asio::placeholders::bytes_transferred));
 }
 
 // Exit codes:
@@ -35,7 +31,7 @@ void session::start() {
 // 1: End of header not yet reached.
 // 2: Error.
 int session::handle_read(const boost::system::error_code& error,
-      size_t bytes_transferred) {
+                         size_t bytes_transferred) {
     if (!error) {
         bytes_read_ += bytes_transferred;
 
@@ -44,38 +40,43 @@ int session::handle_read(const boost::system::error_code& error,
         const std::string content_type = "Content-Type: text/plain" + delimiter;
 
         // If we have received the entire header, write the response:
-        if (response_builder_.formatResponse(data_, delimiter, response_code, content_type)) {
+        if (response_builder_.formatResponse(data_, delimiter, response_code,
+                                             content_type)) {
             // WIP -- Parse the request:
             http_request req;
             if (http_request::parseRequest(req, std::string(data_))) {
                 std::cout << "HTTP Header" << std::endl;
                 std::cout << "\tMethod: " << req.method << std::endl;
                 std::cout << "\tURI: " << req.uri << std::endl;
-                std::cout << "\tMajor version: " << req.http_version_major << std::endl;
-                std::cout << "\tMinor version: " << req.http_version_minor << std::endl;
+                std::cout << "\tMajor version: " << req.http_version_major
+                          << std::endl;
+                std::cout << "\tMinor version: " << req.http_version_minor
+                          << std::endl;
                 for (auto header : req.headers) {
-                    std::cout << "\t" << header.name << ": " << header.value << std::endl;
+                    std::cout << "\t" << header.name << ": " << header.value
+                              << std::endl;
                 }
             }
 
             std::string response = response_builder_.getResponse();
-            boost::asio::async_write(socket_,
-                boost::asio::buffer(response, response.size()),
+            boost::asio::async_write(
+                socket_, boost::asio::buffer(response, response.size()),
                 boost::bind(&session::close_socket, this,
-                boost::asio::placeholders::error));
+                            boost::asio::placeholders::error));
 
             return 0;
-        // If we have not reached the end of the header, continue reading:
+            // If we have not reached the end of the header, continue reading:
         } else {
-            socket_.async_read_some(boost::asio::buffer(data_ + bytes_read_, max_length - bytes_read_),
+            socket_.async_read_some(
+                boost::asio::buffer(data_ + bytes_read_,
+                                    max_length - bytes_read_),
                 boost::bind(&session::handle_read, this,
-                boost::asio::placeholders::error,
-                boost::asio::placeholders::bytes_transferred));
-            
+                            boost::asio::placeholders::error,
+                            boost::asio::placeholders::bytes_transferred));
+
             return 1;
         }
-    }
-    else {
+    } else {
         delete this;
 
         return 2;
@@ -95,8 +96,7 @@ int session::close_socket(const boost::system::error_code& error) {
         socket_.close();
 
         return 0;
-    }
-    else {
+    } else {
         delete this;
 
         return 1;

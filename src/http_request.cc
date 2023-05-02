@@ -1,9 +1,9 @@
 #include "http_request.h"
 
 #include <cctype>
-#include <unordered_set>
 #include <regex>
 #include <sstream>
+#include <unordered_set>
 
 bool validHeaderName(const std::string& headerName) {
     int n = headerName.size();
@@ -40,24 +40,23 @@ bool http_request::parseRequest(http_request& req, const std::string& req_str) {
     if (!(first_line >> req.method >> req.uri >> http_version_str)) {
         return false;
     }
-    
+
     // Ensure the method in the header is valid:
     if (req.method != "GET") {
         return false;
     }
- 
-    if (std::sscanf(http_version_str.c_str(),
-                    "HTTP/%d.%d",
-                    &req.http_version_major,
-                    &req.http_version_minor) != 2) {
+
+    if (std::sscanf(http_version_str.c_str(), "HTTP/%d.%d",
+                    &req.http_version_major, &req.http_version_minor) != 2) {
         return false;
     }
-   
+
     // Parse the headers (read the rest of the request string):
     while (std::getline(req_stream, line)) {
         std::string name, value;
         std::istringstream header_line(line);
-        if (std::getline(header_line, name, ':') && std::getline(header_line, value)) {
+        if (std::getline(header_line, name, ':') &&
+            std::getline(header_line, value)) {
             if (!validHeaderName(name)) {
                 return false;
             }
