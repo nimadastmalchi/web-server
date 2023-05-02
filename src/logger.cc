@@ -22,7 +22,7 @@ std::shared_ptr<Logger> Logger::logger() {
 }
 
 void Logger::init(std::string file_name, int rotation_size, Logger::RotationTime rotation_time) {
-    // Referenced add_file_log use here: https://stackoverflow.com/questions/39247778/boost-log-how-to-prevent-the-output-will-be-duplicated-to-all-added-streams-whe
+    // Referenced add_file_log used here: https://stackoverflow.com/questions/39247778/boost-log-how-to-prevent-the-output-will-be-duplicated-to-all-added-streams-whe
     boost::log::register_simple_formatter_factory<boost::log::trivial::severity_level, char>("Severity");
     std::string log_format = "[%TimeStamp%] (Thread: %ThreadID%) [%Severity%]: %Message%";
    
