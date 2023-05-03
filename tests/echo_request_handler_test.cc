@@ -2,7 +2,6 @@
 
 #include "gtest/gtest.h"
 #include "http_request.h"
-#include "response_builder.h"
 
 class EchoRequestHandlerTest : public ::testing::Test {
     protected:
