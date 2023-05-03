@@ -14,11 +14,18 @@
 #include <boost/bind.hpp>
 #include <cstdlib>
 #include <iostream>
+#include <map>
+#include <memory>
 
 #include "config_parser.h"
 #include "logger.h"
+#include "request_handler.h"
 #include "server.h"
 #include "session.h"
+
+// TODO REMOVE
+#include "echo_request_handler.h"
+#include "static_request_handler.h"
 
 using boost::asio::ip::tcp;
 
@@ -63,20 +70,22 @@ int main(int argc, char* argv[]) {
             return -1;
         }
 
-        std::vector<LocationBlock> location_blocks = config.getLocationBlocks();
+        std::map<std::string, std::shared_ptr<RequestHandler>> handlers =
+            config.getHandlerMapping();
 
         ResponseBuilder response_builder;
         boost::asio::io_service io_service;
         tcp::endpoint endpoint = tcp::endpoint(tcp::v4(), port);
         tcp::acceptor acceptor = tcp::acceptor(io_service, endpoint);
 
-        server server(io_service, acceptor, response_builder,
-                      [](boost::asio::io_service& io_service,
-                         ResponseBuilder& response_builder) -> session* {
-                          tcp::socket socket(io_service);
-                          return new session(std::move(socket),
-                                             response_builder);
-                      });
+        server server(
+            io_service, acceptor, response_builder,
+            [handlers](boost::asio::io_service& io_service,
+                       ResponseBuilder& response_builder) -> session* {
+                tcp::socket socket(io_service);
+                return new session(std::move(socket), response_builder,
+                                   handlers);
+            });
         Logger::log_info("Server listening on port " + std::to_string(port));
         io_service.run();
     } catch (std::exception& e) {

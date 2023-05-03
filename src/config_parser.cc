@@ -12,12 +12,13 @@
 #include <cstdio>
 #include <fstream>
 #include <iostream>
-#include <memory>
 #include <stack>
 #include <string>
 #include <vector>
 
+#include "echo_request_handler.h"
 #include "logger.h"
+#include "static_request_handler.h"
 
 std::string NginxConfig::ToString(int depth) {
     std::string serialized_config;
@@ -77,8 +78,9 @@ int NginxConfig::getPort() {
 
 // Return a vector of LocationBlock structs, representing the location blocks
 // in the server block in the config file.
-std::vector<LocationBlock> NginxConfig::getLocationBlocks() {
-    std::vector<LocationBlock> blocks;
+std::map<std::string, std::shared_ptr<RequestHandler>>
+NginxConfig::getHandlerMapping() {
+    std::map<std::string, std::shared_ptr<RequestHandler>> handlers;
     for (auto statement : statements_) {
         if (statement->tokens_.size() == 1 &&
             statement->tokens_[0] == "server") {
@@ -89,24 +91,44 @@ std::vector<LocationBlock> NginxConfig::getLocationBlocks() {
                 if (child_statement->tokens_[0] != "location") {
                     continue;
                 }
-                LocationBlock block;
-                block.uri_ = child_statement->tokens_[1];
-                block.handler_ = child_statement->tokens_[2];
-                block.root_ = "/";
+                std::string uri = child_statement->tokens_[1];
+                std::string handler = child_statement->tokens_[2];
+                std::string root = "/";
                 for (auto child_child_statement :
                      child_statement->child_block_->statements_) {
                     if (child_child_statement->tokens_.size() == 2 &&
                         child_child_statement->tokens_[0] == "root") {
-                        block.root_ = child_child_statement->tokens_[1];
+                        root = child_child_statement->tokens_[1];
                         break;
                     }
                 }
-                blocks.push_back(std::move(block));
+                while (!root.empty() && root.back() == '/') {
+                    root.pop_back();
+                }
+                while (!root.empty() && root.front() == '/') {
+                    root = root.substr(1);
+                }
+
+                while (!uri.empty() && uri.back() == '/') {
+                    uri.pop_back();
+                }
+                while (!uri.empty() && uri.front() == '/') {
+                    uri = uri.substr(1);
+                }
+                if (handlers.find(uri) != handlers.end()) {
+                    continue;
+                }
+                if (handler == "StaticHandler") {
+                    handlers[uri] =
+                        std::make_shared<StaticRequestHandler>(root, uri);
+                } else if (handler == "EchoHandler") {
+                    handlers[uri] = std::make_shared<EchoRequestHandler>();
+                }
             }
         }
         break;
     }
-    return std::move(blocks);
+    return std::move(handlers);
 }
 
 const char* NginxConfigParser::TokenTypeAsString(TokenType type) {

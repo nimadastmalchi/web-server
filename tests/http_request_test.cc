@@ -15,7 +15,7 @@ TEST_F(HttpRequestTest, ValidRequest) {
     bool success = http_request::parseRequest(req, req_str);
     EXPECT_TRUE(success);
     EXPECT_EQ(req.method, "GET");
-    EXPECT_EQ(req.uri, "/test/");
+    EXPECT_EQ(req.uri, "test");
     EXPECT_EQ(req.http_version_major, 1);
     EXPECT_EQ(req.http_version_minor, 1);
     EXPECT_EQ(req.headers[0].name, "Name");

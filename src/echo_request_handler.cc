@@ -12,10 +12,6 @@ void EchoRequestHandler::handleRequest(const http_request& request,
     std::string response_code = http_version + " 200 0K\r\n";
     std::string content_type = "Content-Type: text/plain\r\n\r\n";
 
-    std::string content =
-        request.method + " " + request.uri + " " + http_version + "\r\n";
-    for (auto header : request.headers) {
-        content += header.name + ": " + header.value + "\r\n";
-    }
+    std::string content = request.raw + "\r\n";
     response = response_code + content_type + content + "\r\n";
 }

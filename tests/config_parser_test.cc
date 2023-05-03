@@ -1,6 +1,9 @@
 #include "config_parser.h"
 
+#include "echo_request_handler.h"
 #include "gtest/gtest.h"
+#include "request_handler.h"
+#include "static_request_handler.h"
 
 class NginxConfigParserTest : public ::testing::Test {
     protected:
@@ -66,18 +69,17 @@ TEST_F(NginxConfigParserTest, PortParseConfig) {
     EXPECT_EQ(repr, "server {\n  port 80;\n}\n");
 }
 
-TEST_F(NginxConfigParserTest, LocationParseConfig) {
+TEST_F(NginxConfigParserTest, HandlerMapConfig) {
     bool success = parser_.Parse("pass_test10", &out_config_);
     EXPECT_TRUE(success);
 
-    std::vector<LocationBlock> blocks = out_config_.getLocationBlocks();
-    EXPECT_EQ(blocks.size(), 2);
-    EXPECT_EQ(blocks[0].handler_, "StaticHandler");
-    EXPECT_EQ(blocks[0].uri_, "/static/");
-    EXPECT_EQ(blocks[0].root_, "/foo/bar");
-    EXPECT_EQ(blocks[1].handler_, "EchoHandler");
-    EXPECT_EQ(blocks[1].uri_, "/echo/");
-    EXPECT_EQ(blocks[1].root_, "/");
+    auto handlers = out_config_.getHandlerMapping();
+    EXPECT_TRUE(handlers.find("echo") != handlers.end());
+    EXPECT_TRUE(handlers.find("static") != handlers.end());
+    EXPECT_TRUE(dynamic_cast<EchoRequestHandler*>(handlers["echo"].get()) !=
+                nullptr);
+    EXPECT_TRUE(dynamic_cast<StaticRequestHandler*>(handlers["static"].get()) !=
+                nullptr);
 }
 
 TEST_F(NginxConfigParserTest, NonexistentConfig) {

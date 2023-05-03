@@ -4,9 +4,12 @@
 #include <boost/bind.hpp>
 #include <cstdlib>
 #include <iostream>
+#include <map>
 #include <string>
 
+#include "echo_request_handler.h"
 #include "gtest/gtest.h"
+#include "request_handler.h"
 #include "response_builder.h"
 #include "session.h"
 
@@ -28,13 +31,16 @@ class ServerTest : public ::testing::Test {
         tcp::endpoint endpoint = tcp::endpoint(tcp::v4(), port);
         tcp::acceptor acceptor = tcp::acceptor(io_service_, endpoint);
 
-        server server_ =
-            server(io_service_, acceptor, response_builder_,
-                   [](boost::asio::io_service& io_service_,
-                      ResponseBuilder& response_builder_) -> session* {
-                       tcp::socket socket(io_service_);
-                       return new session(std::move(socket), response_builder_);
-                   });
+        server server_ = server(
+            io_service_, acceptor, response_builder_,
+            [](boost::asio::io_service& io_service_,
+               ResponseBuilder& response_builder_) -> session* {
+                std::map<std::string, std::shared_ptr<RequestHandler>> handlers;
+                handlers[""] = std::make_shared<EchoRequestHandler>();
+                tcp::socket socket(io_service_);
+                return new session(std::move(socket), response_builder_,
+                                   handlers);
+            });
 
         void start_() { return server_.start_accept(); }
 

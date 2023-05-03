@@ -17,6 +17,7 @@ class http_request {
         int http_version_major;
         int http_version_minor;
         std::vector<http_header> headers;
+        std::string raw;
 
         // Given a raw HTTP request string, req_str, populate the http_request
         // struct, req.

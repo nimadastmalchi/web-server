@@ -4,20 +4,28 @@
 #include <boost/bind.hpp>
 #include <cstdlib>
 #include <iostream>
+#include <map>
 #include <string>
 
+#include "echo_request_handler.h"
 #include "gtest/gtest.h"
+#include "request_handler.h"
 #include "response_builder.h"
 
 using boost::asio::ip::tcp;
 
 class SessionTest : public ::testing::Test {
     protected:
-        void SetUp() override { io_service_.run(); }
+        void SetUp() override {
+            io_service_.run();
+            handlers[""] = std::make_shared<EchoRequestHandler>();
+        }
 
+        std::map<std::string, std::shared_ptr<RequestHandler>> handlers;
         ResponseBuilder response_builder_;
         boost::asio::io_service io_service_;
-        session session_ = session(tcp::socket(io_service_), response_builder_);
+        session session_ =
+            session(tcp::socket(io_service_), response_builder_, handlers);
         const std::string delimiter_ = "\r\n\r\n";
         const std::string response_code_ = "HTTP/1.1 200 0K\r\n";
         const std::string content_type_ =

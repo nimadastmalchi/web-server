@@ -9,8 +9,8 @@
 class StaticRequestHandlerTest : public ::testing::Test {
     protected:
         void SetUp() override {}
-        std::string prefix = "/static/";
-        std::string root = "/";
+        std::string prefix = "static";
+        std::string root = "";
         std::string req_str;
 
         char c;
@@ -37,7 +37,7 @@ TEST_F(StaticRequestHandlerTest, ValidRequest) {
     req_str = "GET /static/img/diary.png HTTP/1.1\r\nName: Value";
     http_request::parseRequest(req, req_str);
 
-    std::string file_path = "../img/diary.png";
+    std::string file_path = "./img/diary.png";
     std::ifstream f(file_path.c_str(), std::ios::in | std::ios::binary);
 
     std::string expected_file_body;

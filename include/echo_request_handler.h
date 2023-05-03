@@ -11,8 +11,8 @@
 
 class EchoRequestHandler : public RequestHandler {
     public:
-        EchoRequestHandler() {}
-        void handleRequest(const http_request &request_, std::string &response);
+        void handleRequest(const http_request &request_,
+                           std::string &response) override;
 };
 
 #endif  // REQUEST_HANDLER_ECHO_H

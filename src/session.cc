@@ -4,18 +4,23 @@
 #include <boost/bind.hpp>
 #include <cstdlib>
 #include <iostream>
+#include <memory>
 #include <string>
 
 #include "http_request.h"
 #include "logger.h"
+#include "request_handler.h"
 #include "response_builder.h"
 
 using boost::asio::ip::tcp;
 
-session::session(tcp::socket socket, ResponseBuilder& response_builder)
+session::session(
+    tcp::socket socket, ResponseBuilder& response_builder,
+    std::map<std::string, std::shared_ptr<RequestHandler>> handlers)
     : socket_(std::move(socket)),
       response_builder_(response_builder),
-      bytes_read_(0) {}
+      bytes_read_(0),
+      handlers_(std::move(handlers)) {}
 
 tcp::socket& session::socket() { return socket_; }
 
@@ -48,28 +53,51 @@ int session::handle_read(const boost::system::error_code& error,
             // WIP -- Parse the request:
             http_request req;
             if (http_request::parseRequest(req, std::string(data_))) {
-                std::cout << "HTTP Header" << std::endl;
-                std::cout << "\tMethod: " << req.method << std::endl;
-                std::cout << "\tURI: " << req.uri << std::endl;
-                std::cout << "\tMajor version: " << req.http_version_major
-                          << std::endl;
-                std::cout << "\tMinor version: " << req.http_version_minor
-                          << std::endl;
-                for (auto header : req.headers) {
-                    std::cout << "\t" << header.name << ": " << header.value
-                              << std::endl;
-                }
-
                 Logger::log_trace(socket(), "Received request: " + req.method +
                                                 " " + req.uri);
-            }
-            std::string response = response_builder_.getResponse();
-            Logger::log_trace(socket(), "Sending response");
-            boost::asio::async_write(
-                socket_, boost::asio::buffer(response, response.size()),
-                boost::bind(&session::close_socket, this,
-                            boost::asio::placeholders::error));
 
+                std::shared_ptr<RequestHandler> handler =
+                    getRequestHandler(req);
+                if (handler != nullptr) {
+                    Logger::log_trace(socket(), "Valid request");
+
+                    std::string res;
+                    handler->handleRequest(req, res);
+                    boost::asio::async_write(
+                        socket_, boost::asio::buffer(res, res.size()),
+                        boost::bind(&session::close_socket, this,
+                                    boost::asio::placeholders::error));
+                } else {
+                    Logger::log_trace(socket(),
+                                      "Unknown URI, responding with 400");
+
+                    std::string http_version =
+                        "HTTP/" + std::to_string(req.http_version_major) + "." +
+                        std::to_string(req.http_version_minor);
+
+                    std::string res = http_version + " 400 BAD REQUEST\r\n\r\n";
+
+                    boost::asio::async_write(
+                        socket_, boost::asio::buffer(res, res.size()),
+                        boost::bind(&session::close_socket, this,
+                                    boost::asio::placeholders::error));
+                }
+
+            } else {
+                Logger::log_trace(socket(),
+                                  "Bad HTTP request, responding with 400");
+
+                std::string http_version =
+                    "HTTP/" + std::to_string(req.http_version_major) + "." +
+                    std::to_string(req.http_version_minor);
+
+                std::string res = http_version + " 400 BAD REQUEST\r\n\r\n";
+
+                boost::asio::async_write(
+                    socket_, boost::asio::buffer(res, res.size()),
+                    boost::bind(&session::close_socket, this,
+                                boost::asio::placeholders::error));
+            }
             return 0;
             // If we have not reached the end of the header, continue reading:
         } else {
@@ -112,4 +140,23 @@ int session::close_socket(const boost::system::error_code& error) {
 
         return 1;
     }
+}
+
+std::shared_ptr<RequestHandler> session::getRequestHandler(
+    const http_request& req) {
+    std::string uri = req.uri;
+
+    std::shared_ptr<RequestHandler> handler = nullptr;
+    std::string prefix;
+
+    for (auto it = handlers_.begin(); it != handlers_.end(); ++it) {
+        if (uri.substr(0, it->first.length()) == it->first) {
+            if (it->first.length() >= prefix.length()) {
+                prefix = it->first;
+                handler = it->second;
+            }
+        }
+    }
+
+    return handler;
 }

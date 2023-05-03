@@ -29,6 +29,8 @@ bool validHeaderName(const std::string& headerName) {
 bool http_request::parseRequest(http_request& req, const std::string& req_str) {
     std::istringstream req_stream(req_str);
 
+    req.raw = req_str;
+
     std::string line;
     if (!std::getline(req_stream, line)) {
         return false;
@@ -39,6 +41,13 @@ bool http_request::parseRequest(http_request& req, const std::string& req_str) {
     std::string http_version_str;
     if (!(first_line >> req.method >> req.uri >> http_version_str)) {
         return false;
+    }
+
+    while (!req.uri.empty() && req.uri[0] == '/') {
+        req.uri = req.uri.substr(1);
+    }
+    while (!req.uri.empty() && req.uri.back() == '/') {
+        req.uri.pop_back();
     }
 
     // Ensure the method in the header is valid:

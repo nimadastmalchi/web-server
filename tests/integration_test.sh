@@ -16,9 +16,11 @@ $PATH_TO_BIN $PATH_TO_CONFIG &
 server_pid=$!
 echo $server_pid
 
+sleep 5
+
 ################# Test 1 #################
 actual_output=$(curl --header "test:test" $host:$EXPOSED_PORT --max-time $DELAY)
-expected_output=$'GET / HTTP/1.1\r\nHost: '"$host"$'\r\nUser-Agent: curl/7.81.0\r\nAccept: */*\r\ntest:test\r'
+expected_output=$'GET / HTTP/1.1\r\nHost: '"$host"$'\r\nUser-Agent: curl/7.81.0\r\nAccept: */*\r\ntest:test\r\n\r'
 if [ "$actual_output" = "$expected_output" ]; then
     echo "Integration Test 1 passed"
 else
@@ -28,7 +30,7 @@ fi
 
 ################# Test 2 #################
 actual_output=$(curl --header "Accept: test" $host:$EXPOSED_PORT --max-time $DELAY)
-expected_output=$'GET / HTTP/1.1\r\nHost: '"$host"$'\r\nUser-Agent: curl/7.81.0\r\nAccept: test\r'
+expected_output=$'GET / HTTP/1.1\r\nHost: '"$host"$'\r\nUser-Agent: curl/7.81.0\r\nAccept: test\r\n\r'
 if [ "$actual_output" = "$expected_output" ]; then
     echo "Integration Test 2 passed"
 else
@@ -38,7 +40,7 @@ fi
 
 ################# Test 3 #################
 actual_output=$(curl --header "" $host:$EXPOSED_PORT --max-time $DELAY)
-expected_output=$'GET / HTTP/1.1\r\nHost: '"$host"$'\r\nUser-Agent: curl/7.81.0\r\nAccept: */*\r'
+expected_output=$'GET / HTTP/1.1\r\nHost: '"$host"$'\r\nUser-Agent: curl/7.81.0\r\nAccept: */*\r\n\r'
 if [ "$actual_output" = "$expected_output" ]; then
     echo "Integration Test 3 passed"
 else
@@ -46,13 +48,27 @@ else
     exit_status=1
 fi
 
+mkdir -p img
+touch img/file.txt
+echo "hello world" > img/file.txt
+
 ################# Test 4 #################
-actual_output=$(curl -I --header "" $host:$EXPOSED_PORT --max-time $DELAY)
-expected_output=$'HTTP/1.1 200 0K\r\nContent-Type: text/plain\r\n\r'
+actual_output=$(curl --header "" $host:$EXPOSED_PORT/static/all/img/file.txt --output -)
+expected_output="hello world"
 if [ "$actual_output" = "$expected_output" ]; then
     echo "Integration Test 4 passed"
 else
     echo "Integration Test 4 failed"
+    exit_status=1
+fi
+
+################# Test 5 #################
+actual_output=$(curl --header "" $host:$EXPOSED_PORT/static/image/file.txt --output -)
+expected_output="hello world"
+if [ "$actual_output" = "$expected_output" ]; then
+    echo "Integration Test 5 passed"
+else
+    echo "Integration Test 5 failed"
     exit_status=1
 fi
 

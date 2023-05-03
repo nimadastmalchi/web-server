@@ -46,14 +46,24 @@ std::string StaticRequestHandler::create404Response(
 // Sets HTTP response string according to parsed parameters from input request.
 void StaticRequestHandler::handleRequest(const http_request& request,
                                          std::string& response) {
-    std::string uri = request.uri;
     // Assumption: server executable run from build directory nested one level
     // deep
-    uri.replace(0, prefix_.length(), "../" + root_);
+    std::string uri = request.uri;
+    std::cout << uri << std::endl;
+    uri.replace(0, prefix_.length(), "");
+    while (!uri.empty() && uri[0] == '/') {
+        uri = uri.substr(1);
+    }
+    std::cout << uri << std::endl;
+    if (!root_.empty()) {
+        uri = root_ + "/" + uri;
+    }
+    std::cout << uri << std::endl;
 
     // Adapted from:
     // https://github.com/JonnyKong/UCLA-CS130-Software-Engineering/blob/master/Assignment4_Static_File_Server/src/request_handler/request_handler_static.cc
     boost::filesystem::path boost_path(uri);
+    std::cout << boost::filesystem::absolute(boost_path).string() << std::endl;
     if (!boost::filesystem::exists(uri) ||
         !boost::filesystem::is_regular_file(uri)) {
         response = create404Response(request);

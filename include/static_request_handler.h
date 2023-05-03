@@ -1,17 +1,18 @@
 #ifndef STATIC_REQUEST_HANDLER_H
 #define STATIC_REQUEST_HANDLER_H
 
-#include <boost/filesystem.hpp>
-#include <boost/filesystem/fstream.hpp>
 #include <map>
 #include <string>
 
 #include "request_handler.h"
 
+class http_request;
+
 class StaticRequestHandler : public RequestHandler {
     public:
         StaticRequestHandler(std::string root, std::string prefix);
-        void handleRequest(const http_request& request, std::string& response);
+        void handleRequest(const http_request& request,
+                           std::string& response) override;
 
     private:
         std::string createVersionHeader(const http_request& request);
