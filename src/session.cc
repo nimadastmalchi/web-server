@@ -61,10 +61,10 @@ int session::handle_read(const boost::system::error_code& error,
                 if (handler != nullptr) {
                     Logger::log_trace(socket(), "Valid request");
 
-                    std::string res;
-                    handler->handleRequest(req, res);
+                    handler->handleRequest(req, response_);
                     boost::asio::async_write(
-                        socket_, boost::asio::buffer(res, res.size()),
+                        socket_,
+                        boost::asio::buffer(response_, response_.size()),
                         boost::bind(&session::close_socket, this,
                                     boost::asio::placeholders::error));
                 } else {

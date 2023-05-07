@@ -33,6 +33,8 @@ class session {
         tcp::socket socket_;
         ResponseBuilder& response_builder_;
 
+        std::string response_;
+
         int bytes_read_;
         // Max length constant chosen to support 64K HTTP request size
         // Per: https://piazza.com/class/lfx37nmbiup24h/post/118
