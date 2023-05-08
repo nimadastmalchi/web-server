@@ -1,11 +1,9 @@
-# This is a comment # this is also a comment
+# This is a comment
 foo "bar";
-#this is also a comment
 
 server {
-  listen   80;
-  server_name foo.com;
-  root /home/ubuntu/sites/foo/;
+    # This is also a comment
+    port 80;
+    server_name foo.com;
+    root /home/ubuntu/sites/foo/;
 }
-
-#1243//--\\-]-\=/-/

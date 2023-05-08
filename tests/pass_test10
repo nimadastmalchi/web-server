@@ -1,11 +1,11 @@
 server {
-  port 80;
+    port 80;
 
-  location /static/ StaticHandler {
-    root /foo/bar;
-  }
+    location /static/ StaticHandler {
+        root /foo/bar;
+    }
 
-  location /echo/ EchoHandler {
-      
-  }
+    location /echo/ EchoHandler {
+
+    }
 }
