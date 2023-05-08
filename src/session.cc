@@ -3,6 +3,7 @@
 #include <boost/asio.hpp>
 #include <boost/bind.hpp>
 #include <cstdlib>
+#include <cstring>
 #include <iostream>
 #include <memory>
 #include <string>
@@ -10,15 +11,13 @@
 #include "http_request.h"
 #include "logger.h"
 #include "request_handler.h"
-#include "response_builder.h"
 
 using boost::asio::ip::tcp;
 
 session::session(
-    tcp::socket socket, ResponseBuilder& response_builder,
+    tcp::socket socket,
     std::map<std::string, std::shared_ptr<RequestHandler>> handlers)
     : socket_(std::move(socket)),
-      response_builder_(response_builder),
       bytes_read_(0),
       handlers_(std::move(handlers)) {}
 
@@ -43,12 +42,14 @@ int session::handle_read(const boost::system::error_code& error,
         bytes_read_ += bytes_transferred;
 
         const std::string delimiter = "\r\n\r\n";
-        const std::string response_code = "HTTP/1.1 200 0K\r\n";
-        const std::string content_type = "Content-Type: text/plain" + delimiter;
+        // Check whether the delimiter exists:
+        char* header_end = strstr(data_, delimiter.c_str());
 
         // If we have received the entire header, write the response:
-        if (response_builder_.formatResponse(data_, delimiter, response_code,
-                                             content_type)) {
+        if (header_end) {
+            // Delimit the end of the header with NULL:
+            data_[header_end - data_] = 0;
+
             Logger::log_trace(socket(), "Received entire header");
             // WIP -- Parse the request:
             http_request req;
@@ -82,7 +83,6 @@ int session::handle_read(const boost::system::error_code& error,
                         boost::bind(&session::close_socket, this,
                                     boost::asio::placeholders::error));
                 }
-
             } else {
                 Logger::log_trace(socket(),
                                   "Bad HTTP request, responding with 400");
@@ -129,7 +129,6 @@ int session::close_socket(const boost::system::error_code& error) {
         // Upon writing, reset all instance variables:
         memset(data_, 0, bytes_read_);
         bytes_read_ = 0;
-        response_builder_.resetResponse();
         Logger::log_trace(socket(), "Closing session");
         socket_.close();
 

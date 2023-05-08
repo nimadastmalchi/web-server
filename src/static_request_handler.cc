@@ -7,7 +7,6 @@
 
 #include "http_request.h"
 #include "request_handler.h"
-#include "response_builder.h"
 
 StaticRequestHandler::StaticRequestHandler(std::string root, std::string prefix)
     : root_(root), prefix_(prefix) {

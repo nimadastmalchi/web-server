@@ -9,14 +9,13 @@
 #include <memory>
 
 #include "request_handler.h"
-#include "response_builder.h"
 
 using boost::asio::ip::tcp;
 
 class session {
     public:
         session(
-            tcp::socket socket, ResponseBuilder& response_builder,
+            tcp::socket socket,
             std::map<std::string, std::shared_ptr<RequestHandler>> handlers);
         tcp::socket& socket();
         void start();
@@ -31,7 +30,6 @@ class session {
             const http_request& req);
 
         tcp::socket socket_;
-        ResponseBuilder& response_builder_;
 
         std::string response_;
 

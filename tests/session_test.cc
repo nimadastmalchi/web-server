@@ -10,7 +10,6 @@
 #include "echo_request_handler.h"
 #include "gtest/gtest.h"
 #include "request_handler.h"
-#include "response_builder.h"
 
 using boost::asio::ip::tcp;
 
@@ -22,14 +21,8 @@ class SessionTest : public ::testing::Test {
         }
 
         std::map<std::string, std::shared_ptr<RequestHandler>> handlers;
-        ResponseBuilder response_builder_;
         boost::asio::io_service io_service_;
-        session session_ =
-            session(tcp::socket(io_service_), response_builder_, handlers);
-        const std::string delimiter_ = "\r\n\r\n";
-        const std::string response_code_ = "HTTP/1.1 200 0K\r\n";
-        const std::string content_type_ =
-            "Content-Type: text/plain" + delimiter_;
+        session session_ = session(tcp::socket(io_service_), handlers);
 
         int close_(boost::system::error_code& error) {
             return session_.close_socket(error);
@@ -46,7 +39,7 @@ class SessionTest : public ::testing::Test {
 };
 
 TEST_F(SessionTest, IncompleteWrite) {
-    char data[] = "hello\n";
+    char data[] = "Hello\n";
     write_(data);
 
     boost::system::error_code error;
@@ -57,8 +50,7 @@ TEST_F(SessionTest, IncompleteWrite) {
 
 TEST_F(SessionTest, CompleteWrite) {
     char data[] =
-        "HTTP/1.1 200 OK\r\nContent-Type: text/plain\r\n\r\nGET SOME "
-        "DATA\r\n\r\n";
+        "HTTP/1.1 200 OK\r\nContent-Type: text/plain\r\n\r\nData\r\n\r\n";
     write_(data);
 
     boost::system::error_code error;
@@ -69,7 +61,7 @@ TEST_F(SessionTest, CompleteWrite) {
 
 TEST_F(SessionTest, SessionStart) {
     session_.start();
-    char data[] = "start";
+    char data[] = "Start";
     write_(data);
     session_.socket();
     boost::system::error_code error;

@@ -6,18 +6,14 @@
 #include <cstdlib>
 #include <iostream>
 
-#include "response_builder.h"
 #include "session.h"
 
 using boost::asio::ip::tcp;
 
 class server {
     public:
-        server(
-            boost::asio::io_service& io_service, tcp::acceptor& acceptor,
-            ResponseBuilder& response_builder,
-            std::function<session*(boost::asio::io_service&, ResponseBuilder&)>
-                make_session);
+        server(boost::asio::io_service& io_service, tcp::acceptor& acceptor,
+               std::function<session*(boost::asio::io_service&)> make_session);
 
         friend class ServerTest;
 
@@ -28,9 +24,7 @@ class server {
 
         boost::asio::io_service& io_service_;
         tcp::acceptor& acceptor_;
-        ResponseBuilder& response_builder_;
-        std::function<session*(boost::asio::io_service&, ResponseBuilder&)>
-            make_session_;
+        std::function<session*(boost::asio::io_service&)> make_session_;
 };
 
 #endif

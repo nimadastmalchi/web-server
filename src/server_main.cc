@@ -73,18 +73,15 @@ int main(int argc, char* argv[]) {
         std::map<std::string, std::shared_ptr<RequestHandler>> handlers =
             config.getHandlerMapping();
 
-        ResponseBuilder response_builder;
         boost::asio::io_service io_service;
         tcp::endpoint endpoint = tcp::endpoint(tcp::v4(), port);
         tcp::acceptor acceptor = tcp::acceptor(io_service, endpoint);
 
         server server(
-            io_service, acceptor, response_builder,
-            [handlers](boost::asio::io_service& io_service,
-                       ResponseBuilder& response_builder) -> session* {
+            io_service, acceptor,
+            [handlers](boost::asio::io_service& io_service) -> session* {
                 tcp::socket socket(io_service);
-                return new session(std::move(socket), response_builder,
-                                   handlers);
+                return new session(std::move(socket), handlers);
             });
         Logger::log_info("Server listening on port " + std::to_string(port));
         io_service.run();

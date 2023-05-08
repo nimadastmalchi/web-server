@@ -7,24 +7,19 @@
 #include <iostream>
 
 #include "logger.h"
-#include "response_builder.h"
 
 using boost::asio::ip::tcp;
 
-server::server(
-    boost::asio::io_service& io_service, tcp::acceptor& acceptor,
-    ResponseBuilder& response_builder,
-    std::function<session*(boost::asio::io_service&, ResponseBuilder&)>
-        make_session)
+server::server(boost::asio::io_service& io_service, tcp::acceptor& acceptor,
+               std::function<session*(boost::asio::io_service&)> make_session)
     : io_service_(io_service),
       acceptor_(acceptor),
-      response_builder_(response_builder),
       make_session_(std::move(make_session)) {
     start_accept();
 }
 
 void server::start_accept() {
-    session* new_session = make_session_(io_service_, response_builder_);
+    session* new_session = make_session_(io_service_);
     Logger::log_trace("Opened new session");
     acceptor_.async_accept(
         new_session->socket(),
