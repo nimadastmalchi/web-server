@@ -10,6 +10,31 @@
 
 StaticRequestHandler::StaticRequestHandler(std::string root, std::string prefix)
     : root_(root), prefix_(prefix) {
+    setExtensions();
+}
+
+StaticRequestHandler::StaticRequestHandler(const std::string& path, NginxConfig& config)
+    : prefix_(path) {
+    setExtensions();
+
+    // Extract root from config
+    root_ = "";
+    for (auto statement : config.statements_) {
+        if (statement->tokens_.size() == 2 &&
+            statement->tokens_[0] == "root") {
+            root_ = statement->tokens_[1];
+            break;
+        }
+    }
+    while (!root_.empty() && root_.back() == '/') {
+        root_.pop_back();
+    }
+    while (!root_.empty() && root_.front() == '/') {
+        root_ = root_.substr(1);
+    }
+}
+
+void StaticRequestHandler::setExtensions() {
     extensions_ = {
         {"txt", "text/plain"},      {"htm", "text/html"},
         {"html", "text/html"},      {"jpg", "image/jpeg"},

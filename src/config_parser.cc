@@ -97,22 +97,6 @@ NginxConfig::getHandlerMapping() {
                 }
                 std::string uri = child_statement->tokens_[1];
                 std::string handler = child_statement->tokens_[2];
-                std::string root = "/";
-                for (auto child_child_statement :
-                     child_statement->child_block_->statements_) {
-                    if (child_child_statement->tokens_.size() == 2 &&
-                        child_child_statement->tokens_[0] == "root") {
-                        root = child_child_statement->tokens_[1];
-                        break;
-                    }
-                }
-                while (!root.empty() && root.back() == '/') {
-                    root.pop_back();
-                }
-                while (!root.empty() && root.front() == '/') {
-                    root = root.substr(1);
-                }
-
                 while (!uri.empty() && uri.back() == '/') {
                     uri.pop_back();
                 }
@@ -123,8 +107,9 @@ NginxConfig::getHandlerMapping() {
                     continue;
                 }
                 if (handler == "StaticHandler") {
+                    NginxConfig childConfig = *child_statement->child_block_;
                     handlers[uri] =
-                        std::make_shared<StaticRequestHandler>(root, uri);
+                        std::make_shared<StaticRequestHandler>(uri, childConfig);
                 } else if (handler == "EchoHandler") {
                     handlers[uri] = std::make_shared<EchoRequestHandler>();
                 }
