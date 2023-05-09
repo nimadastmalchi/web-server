@@ -76,8 +76,12 @@ int NginxConfig::getPort() {
     return -1;  // Ret type should be int to cover -1
 }
 
-// Return a vector of LocationBlock structs, representing the location blocks
-// in the server block in the config file.
+// Return a map of URI strings to pointers to RequestHandlers.
+// The URIs will have leading and trailing slashes removed.
+// E.g., "static" --> std::shared_ptr<StaticRequestHandler>
+//       "echo"   --> std::shared_ptr<EchoRequestHandler>
+// If no location blocks are specified in the config file, then an empty
+// map is returned.
 std::map<std::string, std::shared_ptr<RequestHandler>>
 NginxConfig::getHandlerMapping() {
     std::map<std::string, std::shared_ptr<RequestHandler>> handlers;
