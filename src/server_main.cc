@@ -23,10 +23,6 @@
 #include "server.h"
 #include "session.h"
 
-// TODO REMOVE
-#include "echo_request_handler.h"
-#include "static_request_handler.h"
-
 using boost::asio::ip::tcp;
 
 void sigHandler(int signum) {
