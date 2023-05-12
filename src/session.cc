@@ -11,15 +11,16 @@
 #include "http_request.h"
 #include "logger.h"
 #include "request_handler.h"
+#include "request_handler_factory.h"
 
 using boost::asio::ip::tcp;
 
-session::session(
-    tcp::socket socket,
-    std::map<std::string, std::shared_ptr<RequestHandler>> handlers)
+session::session(tcp::socket socket,
+                 std::map<std::string, std::shared_ptr<RequestHandlerFactory>>
+                     handlerFactories)
     : socket_(std::move(socket)),
       bytes_read_(0),
-      handlers_(std::move(handlers)) {}
+      handlerFactories_(std::move(handlerFactories)) {}
 
 tcp::socket& session::socket() { return socket_; }
 
@@ -57,10 +58,13 @@ int session::handle_read(const boost::system::error_code& error,
                 Logger::log_trace(socket(), "Received request: " + req.method +
                                                 " " + req.uri);
 
-                std::shared_ptr<RequestHandler> handler =
-                    getRequestHandler(req);
-                if (handler != nullptr) {
+                std::shared_ptr<RequestHandlerFactory> handlerFactory =
+                    getRequestHandlerFactory(req);
+                if (handlerFactory != nullptr) {
                     Logger::log_trace(socket(), "Valid request");
+                    // Create a new handler for each request:
+                    std::shared_ptr<RequestHandler> handler =
+                        handlerFactory->createHandler();
 
                     handler->handleRequest(req, response_);
                     boost::asio::async_write(
@@ -141,21 +145,22 @@ int session::close_socket(const boost::system::error_code& error) {
     }
 }
 
-std::shared_ptr<RequestHandler> session::getRequestHandler(
+std::shared_ptr<RequestHandlerFactory> session::getRequestHandlerFactory(
     const http_request& req) {
     std::string uri = req.uri;
 
-    std::shared_ptr<RequestHandler> handler = nullptr;
+    std::shared_ptr<RequestHandlerFactory> handlerFactory = nullptr;
     std::string prefix;
 
-    for (auto it = handlers_.begin(); it != handlers_.end(); ++it) {
+    for (auto it = handlerFactories_.begin(); it != handlerFactories_.end();
+         ++it) {
         if (uri.substr(0, it->first.length()) == it->first) {
             if (it->first.length() >= prefix.length()) {
                 prefix = it->first;
-                handler = it->second;
+                handlerFactory = it->second;
             }
         }
     }
 
-    return handler;
+    return handlerFactory;
 }

@@ -9,7 +9,7 @@
 #include <string>
 #include <vector>
 
-#include "request_handler.h"
+#include "request_handler_factory.h"
 
 class NginxConfig;
 
@@ -27,8 +27,8 @@ class NginxConfig {
         std::string ToString(int depth = 0);
         std::vector<std::shared_ptr<NginxConfigStatement>> statements_;
         int getPort();
-        std::map<std::string, std::shared_ptr<RequestHandler>>
-        getHandlerMapping();
+        std::map<std::string, std::shared_ptr<RequestHandlerFactory>>
+        getHandlerFactoryMapping();
 };
 
 // The driver that parses a config file and generates an NginxConfig.

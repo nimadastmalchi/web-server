@@ -36,24 +36,25 @@ include_directories(include)
 
 # Compile and link server executable
 add_library(config_parser_lib src/config_parser.cc)
+add_library(handler_factory_lib src/echo_request_handler_factory.cc src/static_request_handler_factory.cc)
 add_library(handler_lib src/echo_request_handler.cc src/static_request_handler.cc)
 add_library(logger_lib src/logger.cc)
 add_library(server_lib src/server.cc src/session.cc src/http_request.cc)
 add_executable(server src/server_main.cc)
-target_link_libraries(server server_lib config_parser_lib logger_lib handler_lib Boost::system Boost::log_setup Boost::log Boost::filesystem)
+target_link_libraries(server server_lib config_parser_lib logger_lib handler_factory_lib handler_lib Boost::system Boost::log_setup Boost::log Boost::filesystem)
 
 # Compile and link tests
 # Unit Tests (runs via `make test`)
 add_executable(config_parser_test tests/config_parser_test.cc)
-target_link_libraries(config_parser_test config_parser_lib logger_lib gtest_main handler_lib Boost::log_setup Boost::log)
+target_link_libraries(config_parser_test config_parser_lib logger_lib handler_factory_lib handler_lib gtest_main Boost::log_setup Boost::log)
 gtest_discover_tests(config_parser_test WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/tests)
 
 add_executable(session_test tests/session_test.cc)
-target_link_libraries(session_test logger_lib server_lib logger_lib gtest_main handler_lib Boost::log_setup Boost::log)
+target_link_libraries(session_test config_parser_lib server_lib logger_lib handler_factory_lib handler_lib gtest_main Boost::log_setup Boost::log)
 gtest_discover_tests(session_test WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/tests)
 
 add_executable(server_test tests/server_test.cc)
-target_link_libraries(server_test logger_lib server_lib logger_lib gtest_main handler_lib Boost::log_setup Boost::log)
+target_link_libraries(server_test config_parser_lib server_lib logger_lib handler_factory_lib handler_lib gtest_main Boost::log_setup Boost::log)
 gtest_discover_tests(server_test WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/tests)
 
 add_executable(logger_test tests/logger_test.cc)
@@ -61,16 +62,20 @@ target_link_libraries(logger_test logger_lib gtest_main Boost::log_setup Boost::
 gtest_discover_tests(logger_test WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/tests)
 
 add_executable(http_request_test tests/http_request_test.cc)
-target_link_libraries(http_request_test logger_lib server_lib gtest_main)
+target_link_libraries(http_request_test server_lib gtest_main)
 gtest_discover_tests(http_request_test WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/tests)
 
 add_executable(echo_request_handler_test tests/echo_request_handler_test.cc)
-target_link_libraries(echo_request_handler_test logger_lib server_lib handler_lib gtest_main)
+target_link_libraries(echo_request_handler_test server_lib handler_lib gtest_main)
 gtest_discover_tests(echo_request_handler_test WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/tests)
 
 add_executable(static_request_handler_test tests/static_request_handler_test.cc)
-target_link_libraries(static_request_handler_test logger_lib server_lib handler_lib gtest_main Boost::filesystem)
+target_link_libraries(static_request_handler_test config_parser_lib server_lib logger_lib handler_lib gtest_main Boost::filesystem Boost::log_setup Boost::log)
 gtest_discover_tests(static_request_handler_test WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/tests)
+
+add_executable(static_request_handler_factory_test tests/static_request_handler_factory_test.cc)
+target_link_libraries(static_request_handler_factory_test config_parser_lib server_lib logger_lib handler_factory_lib handler_lib gtest_main Boost::filesystem Boost::log_setup Boost::log)
+gtest_discover_tests(static_request_handler_factory_test WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/tests)
 
 # Integration Tests (runs via `make test`)
 find_program(BASH_PROGRAM bash)
@@ -91,4 +96,4 @@ add_custom_target(init_githooks
 )
 
 include(cmake/CodeCoverageReportConfig.cmake)
-generate_coverage_report(TARGETS server server_lib config_parser_lib logger_lib TESTS config_parser_test http_request_test logger_test session_test server_test echo_request_handler_test static_request_handler_test)
+generate_coverage_report(TARGETS server server_lib config_parser_lib logger_lib TESTS config_parser_test http_request_test logger_test session_test server_test echo_request_handler_test static_request_handler_test static_request_handler_factory_test)

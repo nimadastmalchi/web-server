@@ -7,7 +7,7 @@ class EchoRequestHandlerTest : public ::testing::Test {
     protected:
         void SetUp() override {}
 
-        EchoRequestHandler handler = EchoRequestHandler();
+        EchoRequestHandler handler_;
 };
 
 TEST_F(EchoRequestHandlerTest, ValidRequest) {
@@ -16,7 +16,7 @@ TEST_F(EchoRequestHandlerTest, ValidRequest) {
     std::string req_str = "GET /test/ HTTP/1.1\r\nName: Value";
     http_request::parseRequest(req, req_str);
 
-    handler.handleRequest(req, response);
+    handler_.handleRequest(req, response);
     EXPECT_EQ(response,
               "HTTP/1.1 200 0K\r\nContent-Type: text/plain\r\n\r\nGET /test/ "
               "HTTP/1.1\r\nName: Value\r\n\r\n");

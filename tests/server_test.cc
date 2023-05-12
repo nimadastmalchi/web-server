@@ -7,9 +7,10 @@
 #include <map>
 #include <string>
 
-#include "echo_request_handler.h"
+#include "config_parser.h"
+#include "echo_request_handler_factory.h"
 #include "gtest/gtest.h"
-#include "request_handler.h"
+#include "request_handler_factory.h"
 #include "session.h"
 
 using boost::asio::ip::tcp;
@@ -29,10 +30,13 @@ class ServerTest : public ::testing::Test {
         server server_ = server(
             io_service_, acceptor,
             [](boost::asio::io_service& io_service_) -> session* {
-                std::map<std::string, std::shared_ptr<RequestHandler>> handlers;
-                handlers[""] = std::make_shared<EchoRequestHandler>();
+                NginxConfig config;
+                std::map<std::string, std::shared_ptr<RequestHandlerFactory>>
+                    handlerFactories;
+                handlerFactories[""] =
+                    std::make_shared<EchoRequestHandlerFactory>("", config);
                 tcp::socket socket(io_service_);
-                return new session(std::move(socket), handlers);
+                return new session(std::move(socket), handlerFactories);
             });
 
         void start_() { return server_.start_accept(); }

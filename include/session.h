@@ -8,15 +8,15 @@
 #include <map>
 #include <memory>
 
-#include "request_handler.h"
+#include "request_handler_factory.h"
 
 using boost::asio::ip::tcp;
 
 class session {
     public:
-        session(
-            tcp::socket socket,
-            std::map<std::string, std::shared_ptr<RequestHandler>> handlers);
+        session(tcp::socket socket,
+                std::map<std::string, std::shared_ptr<RequestHandlerFactory>>
+                    handlerFactories);
         tcp::socket& socket();
         void start();
 
@@ -26,7 +26,7 @@ class session {
         int handle_read(const boost::system::error_code& error,
                         size_t bytes_transferred);
         int close_socket(const boost::system::error_code& error);
-        std::shared_ptr<RequestHandler> getRequestHandler(
+        std::shared_ptr<RequestHandlerFactory> getRequestHandlerFactory(
             const http_request& req);
 
         tcp::socket socket_;
@@ -39,7 +39,8 @@ class session {
         enum { max_length = 64000 };
         char data_[max_length];
 
-        std::map<std::string, std::shared_ptr<RequestHandler>> handlers_;
+        std::map<std::string, std::shared_ptr<RequestHandlerFactory>>
+            handlerFactories_;
 };
 
 #endif

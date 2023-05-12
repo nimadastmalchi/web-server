@@ -1,9 +1,9 @@
 #include "config_parser.h"
 
-#include "echo_request_handler.h"
+#include "echo_request_handler_factory.h"
 #include "gtest/gtest.h"
-#include "request_handler.h"
-#include "static_request_handler.h"
+#include "request_handler_factory.h"
+#include "static_request_handler_factory.h"
 
 class NginxConfigParserTest : public ::testing::Test {
     protected:
@@ -69,21 +69,21 @@ TEST_F(NginxConfigParserTest, PortParseConfig) {
     EXPECT_EQ(repr, "server {\n  port 80;\n}\n");
 }
 
-TEST_F(NginxConfigParserTest, HandlerMapConfig) {
+TEST_F(NginxConfigParserTest, HandlerFactoryMapConfig) {
     bool success = parser_.Parse("pass_test10", &out_config_);
     EXPECT_TRUE(success);
 
-    auto handlers = out_config_.getHandlerMapping();
-    EXPECT_TRUE(handlers.find("echo") != handlers.end());
-    EXPECT_TRUE(handlers.find("static") != handlers.end());
-    EXPECT_TRUE(dynamic_cast<EchoRequestHandler*>(handlers["echo"].get()) !=
-                nullptr);
-    EXPECT_TRUE(dynamic_cast<StaticRequestHandler*>(handlers["static"].get()) !=
-                nullptr);
+    auto handlerFactories = out_config_.getHandlerFactoryMapping();
+    EXPECT_TRUE(handlerFactories.find("echo") != handlerFactories.end());
+    EXPECT_TRUE(handlerFactories.find("static") != handlerFactories.end());
+    EXPECT_TRUE(dynamic_cast<EchoRequestHandlerFactory*>(
+                    handlerFactories["echo"].get()) != nullptr);
+    EXPECT_TRUE(dynamic_cast<StaticRequestHandlerFactory*>(
+                    handlerFactories["static"].get()) != nullptr);
 }
 
 TEST_F(NginxConfigParserTest, NonexistentConfig) {
-    bool success = parser_.Parse("does not exist", &out_config_);
+    bool success = parser_.Parse("does_not_exist", &out_config_);
     EXPECT_FALSE(success);
 }
 

@@ -11,8 +11,7 @@ class http_request;
 
 class StaticRequestHandler : public RequestHandler {
     public:
-        StaticRequestHandler(std::string root, std::string prefix);
-        StaticRequestHandler(const std::string& path, NginxConfig& config);
+        StaticRequestHandler(const std::string& path, const std::string& root);
         void handleRequest(const http_request& request,
                            std::string& response) override;
 

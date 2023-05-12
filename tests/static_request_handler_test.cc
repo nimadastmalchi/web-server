@@ -9,12 +9,8 @@
 class StaticRequestHandlerTest : public ::testing::Test {
     protected:
         void SetUp() override {}
-        std::string prefix = "static";
-        std::string root = "";
-        std::string req_str;
 
-        char c;
-        StaticRequestHandler handler = StaticRequestHandler(root, prefix);
+        StaticRequestHandler handler_ = StaticRequestHandler("static", "");
 };
 
 TEST_F(StaticRequestHandlerTest, FileNotFound) {
@@ -23,7 +19,7 @@ TEST_F(StaticRequestHandlerTest, FileNotFound) {
     std::string req_str = "GET /static/img/not_found HTTP/1.1\r\nName: Value";
     http_request::parseRequest(req, req_str);
 
-    handler.handleRequest(req, response);
+    handler_.handleRequest(req, response);
     EXPECT_EQ(
         response,
         "HTTP/1.1 404 Not Found\r\nContent-Type: "
@@ -34,13 +30,14 @@ TEST_F(StaticRequestHandlerTest, FileNotFound) {
 TEST_F(StaticRequestHandlerTest, ValidRequest) {
     std::string response;
     http_request req;
-    req_str = "GET /static/img/diary.png HTTP/1.1\r\nName: Value";
+    std::string req_str = "GET /static/img/diary.png HTTP/1.1\r\nName: Value";
     http_request::parseRequest(req, req_str);
 
     std::string file_path = "./img/diary.png";
     std::ifstream f(file_path.c_str(), std::ios::in | std::ios::binary);
 
     std::string expected_file_body;
+    char c;
     while (f.get(c)) expected_file_body += c;
     f.close();
 
@@ -48,6 +45,6 @@ TEST_F(StaticRequestHandlerTest, ValidRequest) {
                            std::to_string(expected_file_body.length()) +
                            "\r\nContent-Type: image/png\r\n\r\n" +
                            expected_file_body + "\r\n";
-    handler.handleRequest(req, response);
+    handler_.handleRequest(req, response);
     EXPECT_EQ(response, expected);
 }

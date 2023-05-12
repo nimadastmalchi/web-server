@@ -20,6 +20,7 @@
 #include "config_parser.h"
 #include "logger.h"
 #include "request_handler.h"
+#include "request_handler_factory.h"
 #include "server.h"
 #include "session.h"
 
@@ -66,19 +67,20 @@ int main(int argc, char* argv[]) {
             return -1;
         }
 
-        std::map<std::string, std::shared_ptr<RequestHandler>> handlers =
-            config.getHandlerMapping();
+        std::map<std::string, std::shared_ptr<RequestHandlerFactory>>
+            handlerFactories = config.getHandlerFactoryMapping();
 
         boost::asio::io_service io_service;
         tcp::endpoint endpoint = tcp::endpoint(tcp::v4(), port);
         tcp::acceptor acceptor = tcp::acceptor(io_service, endpoint);
 
-        server server(
-            io_service, acceptor,
-            [handlers](boost::asio::io_service& io_service) -> session* {
-                tcp::socket socket(io_service);
-                return new session(std::move(socket), handlers);
-            });
+        server server(io_service, acceptor,
+                      [handlerFactories](
+                          boost::asio::io_service& io_service) -> session* {
+                          tcp::socket socket(io_service);
+                          return new session(std::move(socket),
+                                             handlerFactories);
+                      });
         Logger::log_info("Server listening on port " + std::to_string(port));
         io_service.run();
     } catch (std::exception& e) {

@@ -16,9 +16,10 @@
 #include <string>
 #include <vector>
 
-#include "echo_request_handler.h"
+#include "echo_request_handler_factory.h"
 #include "logger.h"
-#include "static_request_handler.h"
+#include "request_handler_factory.h"
+#include "static_request_handler_factory.h"
 
 std::string NginxConfig::ToString(int depth) {
     std::string serialized_config;
@@ -76,15 +77,27 @@ int NginxConfig::getPort() {
     return -1;  // Ret type should be int to cover -1
 }
 
-// Return a map of URI strings to pointers to RequestHandlers.
+std::shared_ptr<RequestHandlerFactory> createHandlerFactory(
+    const std::string& name, const std::string& uri,
+    const NginxConfig& location) {
+    if (name == "StaticHandler") {
+        return std::make_shared<StaticRequestHandlerFactory>(uri, location);
+        // Temporarily default to EchoHandler until 404Hander is made.
+    } else /* (name == "EchoHandler") */ {
+        return std::make_shared<EchoRequestHandlerFactory>(uri, location);
+    }
+}
+
+// Return a map of URI strings to pointers to RequestHandlerFactory objects.
 // The URIs will have leading and trailing slashes removed.
-// E.g., "static" --> std::shared_ptr<StaticRequestHandler>
-//       "echo"   --> std::shared_ptr<EchoRequestHandler>
+// E.g., "static" --> std::shared_ptr<StaticRequestHandlerFactory>
+//       "echo"   --> std::shared_ptr<EchoRequestHandlerFactory>
 // If no location blocks are specified in the config file, then an empty
 // map is returned.
-std::map<std::string, std::shared_ptr<RequestHandler>>
-NginxConfig::getHandlerMapping() {
-    std::map<std::string, std::shared_ptr<RequestHandler>> handlers;
+std::map<std::string, std::shared_ptr<RequestHandlerFactory>>
+NginxConfig::getHandlerFactoryMapping() {
+    std::map<std::string, std::shared_ptr<RequestHandlerFactory>>
+        handlerFactories;
     for (auto statement : statements_) {
         if (statement->tokens_.size() == 1 &&
             statement->tokens_[0] == "server") {
@@ -103,21 +116,17 @@ NginxConfig::getHandlerMapping() {
                 while (!uri.empty() && uri.front() == '/') {
                     uri = uri.substr(1);
                 }
-                if (handlers.find(uri) != handlers.end()) {
+                if (handlerFactories.find(uri) != handlerFactories.end()) {
                     continue;
                 }
-                if (handler == "StaticHandler") {
-                    NginxConfig childConfig = *child_statement->child_block_;
-                    handlers[uri] =
-                        std::make_shared<StaticRequestHandler>(uri, childConfig);
-                } else if (handler == "EchoHandler") {
-                    handlers[uri] = std::make_shared<EchoRequestHandler>();
-                }
+                NginxConfig childConfig = *child_statement->child_block_;
+                handlerFactories[uri] =
+                    createHandlerFactory(handler, uri, childConfig);
             }
         }
         break;
     }
-    return std::move(handlers);
+    return std::move(handlerFactories);
 }
 
 const char* NginxConfigParser::TokenTypeAsString(TokenType type) {

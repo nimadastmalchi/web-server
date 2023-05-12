@@ -5,33 +5,14 @@
 #include <iostream>
 #include <string>
 
+#include "config_parser.h"
 #include "http_request.h"
 #include "request_handler.h"
 
-StaticRequestHandler::StaticRequestHandler(std::string root, std::string prefix)
-    : root_(root), prefix_(prefix) {
+StaticRequestHandler::StaticRequestHandler(const std::string& path,
+                                           const std::string& root)
+    : prefix_(path), root_(root) {
     setExtensions();
-}
-
-StaticRequestHandler::StaticRequestHandler(const std::string& path, NginxConfig& config)
-    : prefix_(path) {
-    setExtensions();
-
-    // Extract root from config
-    root_ = "";
-    for (auto statement : config.statements_) {
-        if (statement->tokens_.size() == 2 &&
-            statement->tokens_[0] == "root") {
-            root_ = statement->tokens_[1];
-            break;
-        }
-    }
-    while (!root_.empty() && root_.back() == '/') {
-        root_.pop_back();
-    }
-    while (!root_.empty() && root_.front() == '/') {
-        root_ = root_.substr(1);
-    }
 }
 
 void StaticRequestHandler::setExtensions() {
