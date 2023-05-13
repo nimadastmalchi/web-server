@@ -7,6 +7,7 @@
 
 #include "config_parser.h"
 #include "http_request.h"
+#include "not_found_handler.h"
 #include "request_handler.h"
 
 StaticRequestHandler::StaticRequestHandler(const std::string& path,
@@ -33,21 +34,6 @@ std::string StaticRequestHandler::createVersionHeader(
     return http_version;
 }
 
-// Return default 404 error response
-std::string StaticRequestHandler::create404Response(
-    const http_request& request) {
-    std::string http_version = createVersionHeader(request);
-    std::string response_code = http_version + " 404 Not Found\r\n";
-    std::string content_type = "Content-Type: text/html\r\n\r\n";
-
-    std::string content =
-        "<html><head><title>404 Not Found</title></head><body><p>404 Not "
-        "Found</p></body></html>";
-    std::string response = response_code + content_type + content + "\r\n";
-
-    return response;
-}
-
 // Sets HTTP response string according to parsed parameters from input request.
 void StaticRequestHandler::handleRequest(const http_request& request,
                                          std::string& response) {
@@ -65,20 +51,23 @@ void StaticRequestHandler::handleRequest(const http_request& request,
     }
     std::cout << uri << std::endl;
 
+    NginxConfig emptyConfig;
+    NotFoundHandler notFoundHandler;
+
     // Adapted from:
     // https://github.com/JonnyKong/UCLA-CS130-Software-Engineering/blob/master/Assignment4_Static_File_Server/src/request_handler/request_handler_static.cc
     boost::filesystem::path boost_path(uri);
     std::cout << boost::filesystem::absolute(boost_path).string() << std::endl;
     if (!boost::filesystem::exists(uri) ||
         !boost::filesystem::is_regular_file(uri)) {
-        response = create404Response(request);
+        notFoundHandler.handleRequest(request, response);
         return;
     }
 
     // Send 404 response if file not found or can't be opened
     std::ifstream f(uri.c_str(), std::ios::in | std::ios::binary);
     if (!f) {
-        response = create404Response(request);
+        notFoundHandler.handleRequest(request, response);
         return;
     }
 

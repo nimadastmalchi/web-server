@@ -4,7 +4,7 @@
 #include <iostream>
 #include <string>
 
-class http_request;
+#include "http_request.h"
 
 class RequestHandler {
     public:

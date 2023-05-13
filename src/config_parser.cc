@@ -18,6 +18,7 @@
 
 #include "echo_request_handler_factory.h"
 #include "logger.h"
+#include "not_found_handler_factory.h"
 #include "request_handler_factory.h"
 #include "static_request_handler_factory.h"
 
@@ -82,9 +83,10 @@ std::shared_ptr<RequestHandlerFactory> createHandlerFactory(
     const NginxConfig& location) {
     if (name == "StaticHandler") {
         return std::make_shared<StaticRequestHandlerFactory>(uri, location);
-        // Temporarily default to EchoHandler until 404Hander is made.
-    } else /* (name == "EchoHandler") */ {
+    } else if (name == "EchoHandler") {
         return std::make_shared<EchoRequestHandlerFactory>(uri, location);
+    } else {
+        return std::make_shared<NotFoundHandlerFactory>(uri, location);
     }
 }
 

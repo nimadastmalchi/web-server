@@ -8,8 +8,6 @@
 #include "request_handler.h"
 #include "request_handler_factory.h"
 
-class http_request;
-
 class StaticRequestHandlerFactory : public RequestHandlerFactory {
     public:
         StaticRequestHandlerFactory(const std::string& path,

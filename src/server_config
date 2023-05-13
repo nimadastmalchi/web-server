@@ -13,7 +13,7 @@ server {
             
     }
 
-    location / EchoHandler {
+    location / NotFoundHandler {
 
     }
 }

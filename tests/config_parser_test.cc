@@ -2,6 +2,7 @@
 
 #include "echo_request_handler_factory.h"
 #include "gtest/gtest.h"
+#include "not_found_handler_factory.h"
 #include "request_handler_factory.h"
 #include "static_request_handler_factory.h"
 
@@ -76,10 +77,13 @@ TEST_F(NginxConfigParserTest, HandlerFactoryMapConfig) {
     auto handlerFactories = out_config_.getHandlerFactoryMapping();
     EXPECT_TRUE(handlerFactories.find("echo") != handlerFactories.end());
     EXPECT_TRUE(handlerFactories.find("static") != handlerFactories.end());
+    EXPECT_TRUE(handlerFactories.find("") != handlerFactories.end());
     EXPECT_TRUE(dynamic_cast<EchoRequestHandlerFactory*>(
                     handlerFactories["echo"].get()) != nullptr);
     EXPECT_TRUE(dynamic_cast<StaticRequestHandlerFactory*>(
                     handlerFactories["static"].get()) != nullptr);
+    EXPECT_TRUE(dynamic_cast<NotFoundHandlerFactory*>(
+                    handlerFactories[""].get()) != nullptr);
 }
 
 TEST_F(NginxConfigParserTest, NonexistentConfig) {

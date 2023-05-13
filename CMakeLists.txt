@@ -36,8 +36,8 @@ include_directories(include)
 
 # Compile and link server executable
 add_library(config_parser_lib src/config_parser.cc)
-add_library(handler_factory_lib src/echo_request_handler_factory.cc src/static_request_handler_factory.cc)
-add_library(handler_lib src/echo_request_handler.cc src/static_request_handler.cc)
+add_library(handler_factory_lib src/echo_request_handler_factory.cc src/static_request_handler_factory.cc src/not_found_handler_factory.cc)
+add_library(handler_lib src/echo_request_handler.cc src/static_request_handler.cc src/not_found_handler.cc)
 add_library(logger_lib src/logger.cc)
 add_library(server_lib src/server.cc src/session.cc src/http_request.cc)
 add_executable(server src/server_main.cc)
@@ -73,6 +73,10 @@ add_executable(static_request_handler_test tests/static_request_handler_test.cc)
 target_link_libraries(static_request_handler_test config_parser_lib server_lib logger_lib handler_lib gtest_main Boost::filesystem Boost::log_setup Boost::log)
 gtest_discover_tests(static_request_handler_test WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/tests)
 
+add_executable(not_found_handler_test tests/not_found_handler_test.cc)
+target_link_libraries(not_found_handler_test config_parser_lib server_lib handler_lib gtest_main)
+gtest_discover_tests(not_found_handler_test WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/tests)
+
 add_executable(static_request_handler_factory_test tests/static_request_handler_factory_test.cc)
 target_link_libraries(static_request_handler_factory_test config_parser_lib server_lib logger_lib handler_factory_lib handler_lib gtest_main Boost::filesystem Boost::log_setup Boost::log)
 gtest_discover_tests(static_request_handler_factory_test WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/tests)
@@ -96,4 +100,4 @@ add_custom_target(init_githooks
 )
 
 include(cmake/CodeCoverageReportConfig.cmake)
-generate_coverage_report(TARGETS server server_lib config_parser_lib logger_lib TESTS config_parser_test http_request_test logger_test session_test server_test echo_request_handler_test static_request_handler_test static_request_handler_factory_test)
+generate_coverage_report(TARGETS server server_lib config_parser_lib logger_lib TESTS config_parser_test http_request_test logger_test session_test server_test echo_request_handler_test static_request_handler_test not_found_handler_test static_request_handler_factory_test)

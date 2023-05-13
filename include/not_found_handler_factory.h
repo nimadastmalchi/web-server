@@ -1,5 +1,5 @@
-#ifndef ECHO_REQUEST_HANDLER_FACTORY_H
-#define ECHO_REQUEST_HANDLER_FACTORY_H
+#ifndef NOT_FOUND_HANDLER_FACTORY_H
+#define NOT_FOUND_HANDLER_FACTORY_H
 
 #include <memory>
 #include <string>
@@ -8,10 +8,10 @@
 #include "request_handler.h"
 #include "request_handler_factory.h"
 
-class EchoRequestHandlerFactory : public RequestHandlerFactory {
+class NotFoundHandlerFactory : public RequestHandlerFactory {
     public:
-        EchoRequestHandlerFactory(const std::string& path,
-                                  const NginxConfig& config);
+        NotFoundHandlerFactory(const std::string& path,
+                               const NginxConfig& config);
         std::shared_ptr<RequestHandler> createHandler() override;
 
     private:

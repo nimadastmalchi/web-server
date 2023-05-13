@@ -5,9 +5,8 @@
 #include <string>
 
 #include "config_parser.h"
+#include "http_request.h"
 #include "request_handler.h"
-
-class http_request;
 
 class StaticRequestHandler : public RequestHandler {
     public:
@@ -18,7 +17,6 @@ class StaticRequestHandler : public RequestHandler {
     private:
         void setExtensions();
         std::string createVersionHeader(const http_request& request);
-        std::string create404Response(const http_request& request);
         std::string root_;
         std::string prefix_;
         std::map<std::string, std::string> extensions_;
