@@ -6,18 +6,21 @@
 #include <string>
 
 #include "config_parser.h"
-#include "http_request.h"
 #include "request_handler.h"
 
-void NotFoundHandler::handleRequest(const http_request& request,
-                                    std::string& response) {
-    std::string http_version = "HTTP/" +
-                               std::to_string(request.http_version_major) +
-                               "." + std::to_string(request.http_version_minor);
-    std::string response_code = http_version + " 404 Not Found\r\n";
-    std::string content_type = "Content-Type: text/html\r\n\r\n";
+using namespace boost::beast;
+
+status NotFoundHandler::handle_request(
+    const http::request<http::string_body>& request,
+    http::response<http::string_body>& response) {
     std::string content =
         "<html><head><title>404 Not Found</title></head><body><p>404 Not "
         "Found</p></body></html>";
-    response = response_code + content_type + content + "\r\n";
+
+    response.version(request.version());
+    response.result(http::status::not_found);
+    response.set(http::field::content_type, "text/html");
+    response.body() = content;
+    response.prepare_payload();
+    return true;
 }

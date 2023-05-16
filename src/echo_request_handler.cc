@@ -1,17 +1,20 @@
 #include "echo_request_handler.h"
 
+#include <sstream>
 #include <string>
 
-#include "http_request.h"
+using namespace boost::beast;
 
-void EchoRequestHandler::handleRequest(const http_request& request,
-                                       std::string& response) {
-    std::string http_version = "HTTP/" +
-                               std::to_string(request.http_version_major) +
-                               "." + std::to_string(request.http_version_minor);
-    std::string response_code = http_version + " 200 0K\r\n";
-    std::string content_type = "Content-Type: text/plain\r\n\r\n";
-
-    std::string content = request.raw + "\r\n";
-    response = response_code + content_type + content + "\r\n";
+status EchoRequestHandler::handle_request(
+    const http::request<http::string_body>& request,
+    http::response<http::string_body>& response) {
+    std::stringstream req_stream;
+    req_stream << request;
+    std::string content = req_stream.str();
+    response.version(request.version());
+    response.result(200);
+    response.set(http::field::content_type, "text/plain");
+    response.body() = content;
+    response.prepare_payload();
+    return true;
 }

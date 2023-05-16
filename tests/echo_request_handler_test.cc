@@ -1,7 +1,11 @@
 #include "echo_request_handler.h"
 
+#include <boost/beast/http.hpp>
+#include <sstream>
+
 #include "gtest/gtest.h"
-#include "http_request.h"
+
+using namespace boost::beast;
 
 class EchoRequestHandlerTest : public ::testing::Test {
     protected:
@@ -11,13 +15,16 @@ class EchoRequestHandlerTest : public ::testing::Test {
 };
 
 TEST_F(EchoRequestHandlerTest, ValidRequest) {
-    std::string response;
-    http_request req;
-    std::string req_str = "GET /test/ HTTP/1.1\r\nName: Value";
-    http_request::parseRequest(req, req_str);
+    http::request<http::string_body> req{http::verb::get, "test", 11};
+    req.set("Name", "Value");
 
-    handler_.handleRequest(req, response);
+    http::response<http::string_body> res;
+    handler_.handle_request(req, res);
+
+    std::stringstream res_stream;
+    res_stream << res;
+    std::string response = res_stream.str();
     EXPECT_EQ(response,
-              "HTTP/1.1 200 0K\r\nContent-Type: text/plain\r\n\r\nGET /test/ "
-              "HTTP/1.1\r\nName: Value\r\n\r\n");
+              "HTTP/1.1 200 OK\r\nContent-Type: text/plain\r\nContent-Length: "
+              "34\r\n\r\nGET test HTTP/1.1\r\nName: Value\r\n\r\n");
 }

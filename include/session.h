@@ -2,6 +2,7 @@
 #define SESSION_H
 
 #include <boost/asio.hpp>
+#include <boost/beast/http.hpp>
 #include <boost/bind.hpp>
 #include <cstdlib>
 #include <iostream>
@@ -27,11 +28,12 @@ class session {
                         size_t bytes_transferred);
         int close_socket(const boost::system::error_code& error);
         std::shared_ptr<RequestHandlerFactory> getRequestHandlerFactory(
-            const http_request& req);
+            const boost::beast::http::request<boost::beast::http::string_body>&
+                req);
 
         tcp::socket socket_;
 
-        std::string response_;
+        std::string responseStr_;
 
         int bytes_read_;
         // Max length constant chosen to support 64K HTTP request size
