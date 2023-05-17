@@ -11,7 +11,7 @@ Every class in our codebase has associated unit tests, as well as overall end to
 ### System design
 The entry point into our server executable is `src/server_main.cc`. The following design diagram outlines (in brief) the logical dependencies in our server loop.
 
-![alt text](img/diagram.jpeg)
+![Diagram depicting server loop. Port and handler mappings are parsed from the config file, which are then passed to server to initialize sessions. A session listens for requests, parses requests, and then creates and dispactches the appropriate handler from a factory according to the handler mapping.](diagram.jpeg)
 
 
 ## Build, Test and Run
