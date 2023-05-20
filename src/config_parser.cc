@@ -21,6 +21,7 @@
 #include "not_found_handler_factory.h"
 #include "request_handler_factory.h"
 #include "static_request_handler_factory.h"
+#include "crud_request_handler_factory.h"
 
 std::string NginxConfig::ToString(int depth) {
     std::string serialized_config;
@@ -85,7 +86,10 @@ std::shared_ptr<RequestHandlerFactory> createHandlerFactory(
         return std::make_shared<StaticRequestHandlerFactory>(uri, location);
     } else if (name == "EchoHandler") {
         return std::make_shared<EchoRequestHandlerFactory>(uri, location);
-    } else {
+    } else if (name == "CRUDHandler"){
+         return std::make_shared<CRUDRequestHandlerFactory>(uri, location);
+    } 
+    else {
         return std::make_shared<NotFoundHandlerFactory>(uri, location);
     }
 }

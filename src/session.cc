@@ -61,18 +61,30 @@ bool parseRawRequest(const std::string& req_str,
         uri.pop_back();
     }
 
-    // Ensure the method in the header is valid:
-    if (method != "GET") {
-        return false;
-    }
-
     int major, minor;
     if (std::sscanf(http_version_str.c_str(), "HTTP/%d.%d", &major, &minor) !=
         2) {
         return false;
     }
 
-    request.method(http::verb::get);
+    // Ensure the method in the header is valid:
+    if (method == "GET") {
+        request.method(http::verb::get);
+    }
+    else if(method =="POST"){
+        request.method(http::verb::post);
+    }
+    else if(method =="PUT"){
+        request.method(http::verb::put);
+    }
+    else if(method =="DELETE"){
+        request.method(http::verb::delete_);
+    }
+    else{
+        return false;
+    }
+
+    
     request.target(uri);
     int v = std::stoi(std::to_string(major) + std::to_string(minor));
     request.version(v);
@@ -148,7 +160,6 @@ int session::handle_read(const boost::system::error_code& error,
                     // Create a new handler for each request:
                     std::shared_ptr<RequestHandler> handler =
                         handlerFactory->createHandler();
-
                     http::response<http::string_body> response;
                     handler->handle_request(request, response);
                     std::stringstream res_stream;

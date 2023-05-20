@@ -16,4 +16,8 @@ server {
     location / NotFoundHandler {
 
     }
+
+    location /api CRUDHandler{
+        root /mnt/crud;
+    }
 }
