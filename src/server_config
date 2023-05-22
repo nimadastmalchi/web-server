@@ -18,6 +18,6 @@ server {
     }
 
     location /api CRUDHandler{
-        root /mnt/crud;
+        root /entities;
     }
 }

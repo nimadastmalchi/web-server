@@ -36,7 +36,7 @@ include_directories(include)
 
 # Compile and link server executable
 add_library(config_parser_lib src/config_parser.cc)
-add_library(handler_factory_lib src/echo_request_handler_factory.cc src/static_request_handler_factory.cc src/not_found_handler_factory.cc src/crud_request_handler_factory.cc)
+add_library(handler_factory_lib src/echo_request_handler_factory.cc src/static_request_handler_factory.cc src/not_found_handler_factory.cc src/crud_request_handler_factory.cc src/entity_manager.cc)
 add_library(handler_lib src/echo_request_handler.cc src/static_request_handler.cc src/not_found_handler.cc src/crud_request_handler.cc)
 add_library(logger_lib src/logger.cc)
 add_library(server_lib src/server.cc src/session.cc)

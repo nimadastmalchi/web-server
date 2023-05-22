@@ -3,8 +3,9 @@
 using namespace boost::beast;
 
 CRUDRequestHandler::CRUDRequestHandler(const std::string& path,
-                                           const std::string& root)
-    : prefix_(path), root_(root) {
+                                       const std::string& root,
+                                      EntityManager& entity_manager)
+    : prefix_(path), root_(root), entity_manager_(entity_manager) {
 }
 
 status CRUDRequestHandler::handle_request(
@@ -15,35 +16,7 @@ status CRUDRequestHandler::handle_request(
         case http::verb::post:
             return handle_create(request,response);
         case http::verb::get: {
-            std::string target_string(request.target().data(), request.target().size());
-            target_string = target_string.substr(prefix_.size());
-            
-            int count = 0;
-            
-            for(size_t i=0;i<target_string.size();i++)
-            {
-                if(target_string[i] == '/')
-                {
-                    count+=1;
-                }
-            }
-            if(count == 1)
-            {
-                return handle_list(request,response);
-            }
-            else if(count == 2)
-            {
-                return handle_retrieve(request,response);
-            }
-            else
-            {
-                // Return bad request
-                response.version(request.version());
-                response.result(400);
-                response.set(http::field::content_type, "text/plain");
-                response.body() = "";
-                response.prepare_payload();
-            }
+            return handle_retrieve_or_list(request,response);
         }
         case http::verb::put:
             return handle_update(request,response);
@@ -64,16 +37,16 @@ status CRUDRequestHandler::handle_create(
     const boost::beast::http::request<boost::beast::http::string_body>& request,
     boost::beast::http::response<boost::beast::http::string_body>& response)
 {
-    // To be implemented
+    entity_manager_.insert(prefix_,root_,request,response);
     return true;
 }
 
 
-status CRUDRequestHandler::handle_retrieve(
+status CRUDRequestHandler::handle_retrieve_or_list(
     const boost::beast::http::request<boost::beast::http::string_body>& request,
     boost::beast::http::response<boost::beast::http::string_body>& response)
 {
-    // To be implemented
+    entity_manager_.get_entity(prefix_,root_,request,response);
     return true;
 }
 
@@ -86,14 +59,6 @@ status CRUDRequestHandler::handle_update(
 }
 
 status CRUDRequestHandler::handle_delete(
-    const boost::beast::http::request<boost::beast::http::string_body>& request,
-    boost::beast::http::response<boost::beast::http::string_body>& response)
-{
-    // To be implemented
-    return true;
-}
-
-status CRUDRequestHandler::handle_list(
     const boost::beast::http::request<boost::beast::http::string_body>& request,
     boost::beast::http::response<boost::beast::http::string_body>& response)
 {

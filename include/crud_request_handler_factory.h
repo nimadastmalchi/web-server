@@ -3,6 +3,7 @@
 
 #include <string>
 
+#include "entity_manager.h"
 #include "config_parser.h"
 #include "request_handler.h"
 #include "request_handler_factory.h"
@@ -18,6 +19,7 @@ class CRUDRequestHandlerFactory : public RequestHandlerFactory {
         std::string path_;
         std::string root_;
         NginxConfig config_;
+        EntityManager entity_manager_;
 };
 
 #endif

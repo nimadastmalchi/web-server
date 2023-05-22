@@ -10,7 +10,7 @@ CRUDRequestHandlerFactory::CRUDRequestHandlerFactory(const std::string& path,
 }
 
 std::shared_ptr<RequestHandler> CRUDRequestHandlerFactory::createHandler() {
-    return std::make_shared<CRUDRequestHandler>(path_, root_);
+    return std::make_shared<CRUDRequestHandler>(path_, root_,entity_manager_);
 }
 
 void CRUDRequestHandlerFactory::parseConfig() {
