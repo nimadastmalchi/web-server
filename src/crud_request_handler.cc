@@ -29,16 +29,15 @@ status CRUDRequestHandler::handle_request(
             response.set(http::field::content_type, "text/plain");
             response.body() = "";
             response.prepare_payload();
+            return false;
     }
-    return true;
 }
 
 status CRUDRequestHandler::handle_create(
     const boost::beast::http::request<boost::beast::http::string_body>& request,
     boost::beast::http::response<boost::beast::http::string_body>& response)
 {
-    entity_manager_.insert(prefix_,root_,request,response);
-    return true;
+    return entity_manager_.insert(prefix_,root_,request,response);
 }
 
 
@@ -46,22 +45,19 @@ status CRUDRequestHandler::handle_retrieve_or_list(
     const boost::beast::http::request<boost::beast::http::string_body>& request,
     boost::beast::http::response<boost::beast::http::string_body>& response)
 {
-    entity_manager_.get_entity(prefix_,root_,request,response);
-    return true;
+    return entity_manager_.get_entity(prefix_,root_,request,response);
 }
 
 status CRUDRequestHandler::handle_update(
     const boost::beast::http::request<boost::beast::http::string_body>& request,
     boost::beast::http::response<boost::beast::http::string_body>& response)
 {
-    // To be implemented
-    return true;
+    return entity_manager_.update(prefix_,root_,request,response);
 }
 
 status CRUDRequestHandler::handle_delete(
     const boost::beast::http::request<boost::beast::http::string_body>& request,
     boost::beast::http::response<boost::beast::http::string_body>& response)
 {
-    // To be implemented
-    return true;
+    return entity_manager_.delete_(prefix_,root_,request,response);
 }
