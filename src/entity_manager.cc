@@ -1,7 +1,9 @@
 #include "entity_manager.h"
+#include <iostream>
 
-EntityManager::EntityManager()
+EntityManager::EntityManager(FileSystem* fs)
 {
+    this->fs = fs;
 }
 
 // split_request takes a request "api/shoes/1" and returns tokenized array [shoes,1]
@@ -77,8 +79,7 @@ bool EntityManager::insert(const std::string& path, const std::string& root,
                                       int optional_insert_id)
 {
     std::string request_target(request.target().data(), request.target().size());
-
-    std::vector<std::string> split= split_request(path,request_target);
+    std::vector<std::string> split = split_request(path,request_target);
     
     // These conditions would signify invalid parameters if optional_insert_id not passed
     if((optional_insert_id == -1) && (split.size() >= 2 || split.size() == 0))
@@ -87,14 +88,13 @@ bool EntityManager::insert(const std::string& path, const std::string& root,
         return true;
     }
     
-    std::string entity_name = split[0];
-
-    std::string directory_path = root + "/" + entity_name;
+    std::string directory_path = root + "/" + split[0];
+    std::string body = "{EXAMPLE PAYLOAD: this codebase does not store request body into boost::beast request}";
+    std::string list_path = directory_path + "/list";
 
     std::string file_path;
     
     int id_insert;
-
     if(optional_insert_id != 1)
     {
         file_path = directory_path + "/" + std::to_string(optional_insert_id);
@@ -102,14 +102,14 @@ bool EntityManager::insert(const std::string& path, const std::string& root,
     }
 
     // Check if directory already exists in system
-    if (std::filesystem::exists(directory_path) && std::filesystem::is_directory(directory_path)) {
+    if (fs->exists_directory(directory_path)) {
         
         if(optional_insert_id == -1)
         {
             // Check if file_path is already occupied at point we are inserting
             int attempt_insert_id = 1;
             std::string attempt_insert_file_path = directory_path + "/" + std::to_string(attempt_insert_id);
-            while(std::filesystem::exists(attempt_insert_file_path))
+            while(fs->exists_file(attempt_insert_file_path))
             {
                 attempt_insert_id += 1;
                 attempt_insert_file_path = directory_path + "/" + std::to_string(attempt_insert_id);
@@ -118,30 +118,12 @@ bool EntityManager::insert(const std::string& path, const std::string& root,
             file_path = attempt_insert_file_path;
             id_insert = attempt_insert_id;
         }
-        
-        std::ifstream file_in(directory_path+"/list");
-        std::stringstream buffer;
-        buffer << file_in.rdbuf();
-        std::string file_contents = buffer.str();
-        file_in.close();
-
-        // Modify the contents
-        if (!file_contents.empty()) {
-            // Remove the closing bracket ("]") from the current contents
-            file_contents.pop_back();
-
-            // Add the new value to the contents
-            file_contents += ","+std::to_string(id_insert) +"]";
+        std::string list_contents = fs->read_file(list_path);
+        if (list_contents.size() != 0) {
+            list_contents = list_contents.substr(0, list_contents.size() - 1) + "," + std::to_string(id_insert) + "]";
         }
+        fs->write_file(list_path, list_contents);
 
-        // Write the modified contents back to the file
-        std::ofstream file_out(directory_path+"/list");
-        file_out << file_contents;
-        file_out.close();
-
-        // Note: the implementation in this codebase does not put the body of the request into boost::beast request
-        // so we will use a temporary implementation
-        // const boost::beast::string_view body = request.body(); -> doesn't return anything
         std::string body;
         if(optional_insert_id == -1)
         {
@@ -151,16 +133,14 @@ bool EntityManager::insert(const std::string& path, const std::string& root,
         {
             body = "{EXAMPLE UPDATED PAYLOAD: this codebase does not store request body into boost::beast request}";
         }
-
-        std::ofstream file_in_2(file_path);
-        file_in_2 << body;
-        file_in_2.close();
+        fs->write_file(list_path, list_contents);
+        fs->create_file(file_path);
+        fs->write_file(file_path, body);
     }
     else
     {
-        // create and initialize directory
-        if (std::filesystem::create_directory(directory_path)){
-
+        if (fs->create_directory(directory_path))
+        {
             if(optional_insert_id == -1)
             {
                 id_insert = 1;
@@ -168,13 +148,9 @@ bool EntityManager::insert(const std::string& path, const std::string& root,
             }
 
             //create empty list that will track ids
-            std::ofstream file_in(directory_path + "/list");
-            file_in << "[" + std::to_string(id_insert) + "]";
-            file_in.close();
+            fs->create_file(list_path);
+            fs->write_file(list_path, "[" + std::to_string(id_insert) + "]");
 
-            // Note: the implementation in this codebase does not put the body of the request into boost::beast request
-            // so we will use a temporary implementation
-            // const boost::beast::string_view body = request.body(); -> doesn't return anything
             std::string body;
             if(optional_insert_id == -1)
             {
@@ -185,9 +161,8 @@ bool EntityManager::insert(const std::string& path, const std::string& root,
                 body = "{EXAMPLE UPDATED PAYLOAD: this codebase does not store request body into boost::beast request}";
             }
 
-            std::ofstream file_in_2(file_path);
-            file_in_2 << body;
-            file_in_2.close();
+            fs->create_file(file_path);
+            fs->write_file(file_path, body);
         }
         else
         {
@@ -207,47 +182,29 @@ bool EntityManager::get_entity(const std::string& path, const std::string& root,
                                 boost::beast::http::response<boost::beast::http::string_body>& response)
 {
     std::string request_target(request.target().data(), request.target().size());
-
     std::vector<std::string> split= split_request(path,request_target);
-
     std::string directory_path;
 
     if(split.size() == 1)
     {
         std::string entity_name = split[0];
-
         directory_path = root + "/" + entity_name + "/" + "list";
     }
     else if (split.size() == 2)
     {
         std::string entity_name = split[0];
-
         std::string entity_number = split[1];
-
         directory_path = root + "/" + entity_name + "/" + entity_number;      
     }
     else
     {
-        // Return bad request
         set_response(400,request,response);
         return true;
     }
 
-    
-    if(std::filesystem::exists(directory_path))
+    if(fs->exists_file(directory_path))
     {   
-        std::ifstream file(directory_path);
-        if (!file.is_open())
-        {
-            Logger::log_info("File failed to open");
-            return false;
-        }
-
-        std::stringstream req_stream;
-        req_stream << file.rdbuf(); // Read file contents into req_stream
-        file.close();
-
-        std::string content = req_stream.str();
+        std::string content = fs->read_file(directory_path);
         set_response(200,request,response,content);
     }
     else

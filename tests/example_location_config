@@ -1,1 +1,2 @@
 root /test;
+data_path /path_test

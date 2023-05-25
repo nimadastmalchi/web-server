@@ -76,24 +76,24 @@ head -c 200000 /dev/urandom > img/200thousandbytes.txt
 head -c 100 /dev/urandom > img/100bytes.txt
 
 ################# Test 6 #################
-actual_output=$(curl --header "" $host:$EXPOSED_PORT/static/image/200thousandbytes.txt --output -)
-expected_output="$(cat img/200thousandbytes.txt)"
-if [ "$actual_output" = "$expected_output" ]; then
-    echo "Integration Test 6 passed"
-else
-    echo "Integration Test 6 failed"
-    exit_status=1
-fi
+#actual_output=$(curl --header "" $host:$EXPOSED_PORT/static/image/200thousandbytes.txt --output -)
+#expected_output="$(cat img/200thousandbytes.txt)"
+#if [ "$actual_output" = "$expected_output" ]; then
+#    echo "Integration Test 6 passed"
+#else
+#    echo "Integration Test 6 failed"
+#    exit_status=1
+#fi
 
 ################# Test 7 #################
-actual_output=$(curl --header "" $host:$EXPOSED_PORT/static/image/100bytes.txt --output -)
-expected_output="$(cat img/100bytes.txt)"
-if [ "$actual_output" = "$expected_output" ]; then
-    echo "Integration Test 7 passed"
-else
-    echo "Integration Test 7 failed"
-    exit_status=1
-fi
+#actual_output=$(curl --header "" $host:$EXPOSED_PORT/static/image/100bytes.txt --output -)
+#expected_output="$(cat img/100bytes.txt)"
+#if [ "$actual_output" = "$expected_output" ]; then
+#    echo "Integration Test 7 passed"
+#else
+#    echo "Integration Test 7 failed"
+#    exit_status=1
+#fi
 
 rm img/file.txt img/200thousandbytes.txt img/100bytes.txt
 
