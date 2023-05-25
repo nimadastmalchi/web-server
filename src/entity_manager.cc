@@ -44,27 +44,34 @@ void EntityManager::set_response(int status_code,const boost::beast::http::reque
     }
 
     // accounting for all possible status codes in entity manager
+    // 400 error code indicates bad request
     if(status_code == 400)
     {
         response.set(boost::beast::http::field::content_type, "text/html");
         response.body() = "<html><head><title>400 Bad Request</title></head><body><p>400 Bad Request</p></body></html>";
     }
+    // 201 status code indicates request was completed and resource was created
+    // common status code for a POST request
     else if(status_code == 201)
     {
         response.set(boost::beast::http::field::content_type, "application/json");
         response.body() = optional_file_content;
     }
+    // indicates that server cannot find requested resource
     else if(status_code == 404)
     {
         NotFoundHandler not_found_handler;
         not_found_handler.handle_request(request, response);
     }
+    // indicates that the request has succeeded
     else if(status_code == 200)
     {
         response.set(boost::beast::http::field::content_type, "application/json");
         response.body() = optional_file_content;
     }
-    else // status code 204
+    // 204 No content is a success status code that indicates that a request has succeeded
+    // but that the client doesn't need to navigate away from its current page
+    else
     {
         response.body() = "";
     }
@@ -82,6 +89,7 @@ bool EntityManager::insert(const std::string& path, const std::string& root,
     std::vector<std::string> split = split_request(path,request_target);
     
     // These conditions would signify invalid parameters if optional_insert_id not passed
+    // hence we return a bad request
     if((optional_insert_id == -1) && (split.size() >= 2 || split.size() == 0))
     {
         set_response(400,request,response);
@@ -171,7 +179,7 @@ bool EntityManager::insert(const std::string& path, const std::string& root,
         }
     }
     
-    //set response
+    //set response indicates that POST request successfully created resource
     std::string content = "{\"id\": "+std::to_string(id_insert)+"}";
     set_response(201,request,response,content);
     return true;
@@ -196,6 +204,7 @@ bool EntityManager::get_entity(const std::string& path, const std::string& root,
         std::string entity_number = split[1];
         directory_path = root + "/" + entity_name + "/" + entity_number;      
     }
+    //if there are invalid number of arguments to GET or LIST requests, returning a 400 bad request
     else
     {
         set_response(400,request,response);
@@ -318,6 +327,7 @@ bool EntityManager::delete_(const std::string& path, const std::string& root,
             }
             
             // set response
+            // delete request succeeded and client doesn't need to do anything further, so return 204 status code
             set_response(204,request,response);
         }
         else // if path doesn't exist we return not found

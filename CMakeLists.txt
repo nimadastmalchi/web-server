@@ -98,6 +98,7 @@ gtest_discover_tests(fake_file_system_test WORKING_DIRECTORY ${CMAKE_CURRENT_SOU
 # Integration Tests (runs via `make test`)
 find_program(BASH_PROGRAM bash)
 add_test(NAME integration_test COMMAND ${BASH_PROGRAM} ${CMAKE_CURRENT_SOURCE_DIR}/tests/integration_test.sh)
+add_test(NAME crud_integration_tests COMMAND ${BASH_PROGRAM} ${CMAKE_CURRENT_SOURCE_DIR}/tests/crud_integration_test/crud_integration_test.sh WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/tests)
 
 # End to end Tests (runs via `make e2e`)
 add_custom_target(e2e
