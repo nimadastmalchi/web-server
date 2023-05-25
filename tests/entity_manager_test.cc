@@ -102,3 +102,44 @@ TEST_F(EntityManagerTest, ListTest) {
 
     EXPECT_EQ(fs->read_file("crud_files/shoes/list"), "[1,2,3]");
 }
+
+TEST_F(EntityManagerTest, UpdateNonexistentFile) {
+    EntityManager eman(fs);
+
+    boost::beast::http::request<boost::beast::http::string_body> request;
+    request.target("/shoes/12");
+    boost::beast::http::response<boost::beast::http::string_body> response;
+    bool updated = eman.update("", "crud_files", request, response);
+
+    EXPECT_TRUE(updated);
+    EXPECT_TRUE(fs->exists_file("crud_files/shoes/12"));
+    EXPECT_FALSE(fs->exists_file("crud_files/shoes/11"));
+}
+
+TEST_F(EntityManagerTest, UpdateExistingFile) {
+    fs->create_file("crud_files/shoes/12");
+    EntityManager eman(fs);
+
+    boost::beast::http::request<boost::beast::http::string_body> request;
+    request.target("/shoes/12");
+    boost::beast::http::response<boost::beast::http::string_body> response;
+
+    bool updated = eman.update("", "crud_files", request, response);
+    
+    EXPECT_TRUE(updated);
+    EXPECT_TRUE(fs->exists_file("crud_files/shoes/12"));
+    EXPECT_FALSE(fs->exists_file("crud_files/shoes/11"));
+}
+
+TEST_F(EntityManagerTest, DeleteFileSuccess) {
+    fs->create_file("crud_files/shoes/12");
+    EntityManager eman(fs);
+
+    boost::beast::http::request<boost::beast::http::string_body> request;
+    request.target("/shoes/12");
+    boost::beast::http::response<boost::beast::http::string_body> response;
+
+    eman.delete_("", "crud_files", request, response);
+
+    EXPECT_FALSE(fs->exists_file("crud_files/shoes/12"));
+}

@@ -98,3 +98,63 @@ TEST_F(CRUDRequestHandlerTest, ListTest) {
 
     EXPECT_EQ(fs->read_file("crud_files/hats/list"), "[1,2,3]");
 }
+
+TEST_F(CRUDRequestHandlerTest, PutMethodExistingFile) {
+    fs->create_file("crud_files/hats/1");
+    EntityManager eman(fs);
+    CRUDRequestHandler handler_ = CRUDRequestHandler("", "crud_files", eman);
+
+    boost::beast::http::request<boost::beast::http::string_body> req;
+    req.method(http::verb::put);
+    req.target("/hats/1");
+    req.body() = "updated content";
+    boost::beast::http::response<boost::beast::http::string_body> res;
+    
+    std::string before_content = fs->read_file("crud_files/hats/1");
+    handler_.handle_request(req, res);
+    std::string after_content = fs->read_file("crud_files/hats/1");
+
+    EXPECT_FALSE(before_content == after_content);
+}
+
+TEST_F(CRUDRequestHandlerTest, PutMethodNonexistentFile) {
+    EntityManager eman(fs);
+    CRUDRequestHandler handler_ = CRUDRequestHandler("", "crud_files", eman);
+
+    boost::beast::http::request<boost::beast::http::string_body> req;
+    req.method(http::verb::put);
+    req.target("/hats/13");
+    boost::beast::http::response<boost::beast::http::string_body> res;
+    handler_.handle_request(req, res);
+
+    EXPECT_TRUE(fs->exists_file("crud_files/hats/13"));
+    EXPECT_FALSE(fs->exists_file("crud_files/hats/12"));
+    EXPECT_EQ(fs->read_file("crud_files/hats/list"), "[13]");
+}
+
+TEST_F(CRUDRequestHandlerTest, DeleteMethodNotFound) {
+    EntityManager eman(fs);
+    CRUDRequestHandler handler_ = CRUDRequestHandler("", "crud_files", eman);
+
+    boost::beast::http::request<boost::beast::http::string_body> req;
+    req.method(http::verb::delete_);
+    req.target("/hats/11");
+    boost::beast::http::response<boost::beast::http::string_body> res;
+    handler_.handle_request(req, res);
+
+    EXPECT_EQ(res.result(), boost::beast::http::status::not_found);
+}
+
+TEST_F(CRUDRequestHandlerTest, DeleteMethodSuccess) {
+    fs->create_file("crud_files/hats/11");
+    EntityManager eman(fs);
+    CRUDRequestHandler handler_ = CRUDRequestHandler("", "crud_files", eman);
+
+    boost::beast::http::request<boost::beast::http::string_body> req;
+    req.method(http::verb::delete_);
+    req.target("/hats/11");
+    boost::beast::http::response<boost::beast::http::string_body> res;
+    handler_.handle_request(req, res);
+
+    EXPECT_FALSE(fs->exists_file("crud_files/hats/11"));
+}

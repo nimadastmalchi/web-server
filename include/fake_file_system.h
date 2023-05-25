@@ -18,7 +18,8 @@ class FakeFileSystem : public FileSystem {
         virtual std::string read_file(std::string file_path);                   //returns empty string if no file exists
 
         bool exists_directory(std::string directory_path);
-        bool create_directory(std::string directory_path);              //returns true if created. returns false if directory already exists
+        bool create_directory(std::string directory_path);                      //returns true if created. returns false if directory already exists
+        virtual bool delete_directory(std::string directory_path);              //returns true if deleted. returns false if directory never existed
 
     private:
         std::vector<std::string> parse_directories(std::string directory_path);

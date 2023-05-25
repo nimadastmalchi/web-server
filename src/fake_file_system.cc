@@ -69,3 +69,11 @@ std::vector<std::string> FakeFileSystem::parse_directories(std::string directory
     }
     return directories;
 }
+
+bool FakeFileSystem::delete_directory(std::string directory_path) {
+    if (!exists_directory(directory_path)) {
+        return false;
+    }
+    directories.erase(directory_path);
+    return true;
+}

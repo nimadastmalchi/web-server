@@ -18,6 +18,7 @@ class FileSystem {
 
         virtual bool exists_directory(std::string directory_path) = 0;
         virtual bool create_directory(std::string directory_path) = 0;              //returns true if created. returns false if directory already exists
+        virtual bool delete_directory(std::string directory_path) = 0;              //returns true if deleted. returns false if directory never existed
 };
 
 #endif

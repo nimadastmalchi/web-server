@@ -220,36 +220,26 @@ bool EntityManager::update(const std::string& path, const std::string& root,
                                 boost::beast::http::response<boost::beast::http::string_body>& response)
 {
     std::string request_target(request.target().data(), request.target().size());
-
     std::vector<std::string> split= split_request(path,request_target);
 
     if(split.size() == 2)
     {
         std::string entity_name = split[0];
-
         std::string entity_number = split[1];
-
         std::string file_path = root + "/" + entity_name + "/" + entity_number; 
 
         //Check existance of file_path
-        if(std::filesystem::exists(file_path))
+        if(fs->exists_file(file_path))
         {
-            try {
-                std::filesystem::remove(file_path);
-            } catch (const std::filesystem::filesystem_error& error) {
-                Logger::log_info("Error occurred while removing the file.");
-                return false;
-            } catch (...) {
-                Logger::log_info("Unknown error occurred while removing the file.");
+            if (!fs->delete_file(file_path)) {
+                Logger::log_info("Filesystem error occurred while removing the file");
                 return false;
             }
 
             //update payload of new file
             std::string body = "{EXAMPLE UPDATED PAYLOAD: this codebase does not store request body into boost::beast request}";
-
-            std::ofstream file_in(file_path);
-            file_in << body;
-            file_in.close();
+            fs->create_file(file_path);
+            fs->write_file(file_path, body);
 
             std::string content = "{\"id\": "+entity_number+"}";
             set_response(200,request,response,content);
@@ -273,85 +263,58 @@ bool EntityManager::delete_(const std::string& path, const std::string& root,
                                 const boost::beast::http::request<boost::beast::http::string_body>& request,
                                 boost::beast::http::response<boost::beast::http::string_body>& response)
 {
-    // Delete individual file
     std::string request_target(request.target().data(), request.target().size());
-
-    std::vector<std::string> split= split_request(path,request_target);
+    std::vector<std::string> split = split_request(path,request_target);
 
     if(split.size() == 2)
     {
         std::string entity_name = split[0];
-
         std::string entity_number = split[1];
-
         std::string directory_path = root + "/" + entity_name;
+        std::string list_path = directory_path + "/list";
         std::string file_path = root + "/" + entity_name + "/" + entity_number; 
 
-        if(std::filesystem::exists(file_path))
+        if(fs->exists_file(file_path))
         {
-            //delete file
-            try {
-            std::filesystem::remove(file_path);
-            } catch (const std::filesystem::filesystem_error& error) {
-                Logger::log_info("Error occurred while removing the file.");
-                return false;
-            } catch (...) {
-                Logger::log_info("Unknown error occurred while removing the file.");
+            if (!fs->delete_file(file_path)) {
+                Logger::log_info("Error occurred while initially removing the file in EntityManager::delete_");
                 return false;
             }
-
-            //Read stream of list file
-            std::ifstream file_in_2(directory_path+"/list");
-            std::stringstream buffer;
-            buffer << file_in_2.rdbuf();
-            std::string file_contents = buffer.str();
-            file_in_2.close();
+            std::string file_contents = fs->read_file(list_path);
 
             std::string match_middle("," + entity_number + ",");
             std::string match_front("[" + entity_number + ",");
             std::string match_back("," + entity_number + "]");
 
             size_t pos;
-            if ((pos = file_contents.find(match_middle)) != std::string::npos) {
+            if ((pos = file_contents.find(match_middle)) != std::string::npos) 
+            {
                 file_contents.replace(pos, match_middle.length(), ",");
-                std::ofstream file_out(directory_path+"/list");
-                file_out << file_contents;
-                file_out.close();
+                fs->write_file(list_path, file_contents);
             }
-            else if ((pos = file_contents.find(match_front)) != std::string::npos) {
+            else if ((pos = file_contents.find(match_front)) != std::string::npos) 
+            {
                 file_contents.replace(pos, match_front.length(), "[");
-                std::ofstream file_out(directory_path+"/list");
-                file_out << file_contents;
-                file_out.close();
+                fs->write_file(list_path, file_contents);
             }
-            else if ((pos = file_contents.find(match_back)) != std::string::npos) {
+            else if ((pos = file_contents.find(match_back)) != std::string::npos) 
+            {
                 file_contents.replace(pos, match_back.length(), "]");
-                std::ofstream file_out(directory_path+"/list");
-                file_out << file_contents;
-                file_out.close();
+                fs->write_file(list_path, file_contents);
             }
             else {
-                // first delete list
-                try {
-                std::filesystem::remove(directory_path+"/list");
-                } catch (const std::filesystem::filesystem_error& error) {
-                    Logger::log_info("Error occurred while removing the file.");
-                    return false;
-                } catch (...) {
-                    Logger::log_info("Unknown error occurred while removing the file.");
+                //first delete list
+                if (!fs->delete_file(list_path)) 
+                {
+                    Logger::log_info("Error occurred while removing the list file");
                     return false;
                 }
-
-                // then delete directory
-                try {
-                std::filesystem::remove(directory_path);
-                } catch (const std::filesystem::filesystem_error& error) {
-                    Logger::log_info("Error occurred while removing the file.");
+                //then delete directory
+                if (!fs->delete_directory(directory_path)) 
+                {
+                    Logger::log_info("Error occurred while removing the entity directory");
                     return false;
-                } catch (...) {
-                    Logger::log_info("Unknown error occurred while removing the file.");
-                    return false;
-                }                
+                }   
             }
             
             // set response
@@ -367,5 +330,4 @@ bool EntityManager::delete_(const std::string& path, const std::string& root,
         set_response(400,request,response);
     }
     return true;
-    
 }

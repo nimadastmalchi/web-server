@@ -36,9 +36,12 @@ bool RealFileSystem::write_file(std::string file_path, std::string contents) {
 }
 
 bool RealFileSystem::delete_file(std::string file_path) {
-    /*
-    will implement after delete is implemented in EntityManager
-    */
+    try {
+        std::filesystem::remove(file_path);
+    } 
+    catch (const std::filesystem::filesystem_error& error) {
+        return false;
+    }
     return true;
 }
 
@@ -61,4 +64,13 @@ bool RealFileSystem::exists_directory(std::string directory_path) {
 
 bool RealFileSystem::create_directory(std::string directory_path) {
     return std::filesystem::create_directory(directory_path);
+}
+
+bool RealFileSystem::delete_directory(std::string directory_path) {
+    try {
+        std::filesystem::remove(directory_path);
+    } catch (...) {
+        return false;
+    } 
+    return true;   
 }
