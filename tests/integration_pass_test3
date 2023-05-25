@@ -1,5 +1,0 @@
-HTTP/1.1 200 OK
-Content-Type: application/json
-Content-Length: 86
-
-{EXAMPLE PAYLOAD: this codebase does not store request body into boost::beast request}

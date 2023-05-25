@@ -1,9 +1,5 @@
-/**
- * Request handler for echo.
- */
-
-#ifndef REQUEST_HANDLER_ECHO_H
-#define REQUEST_HANDLER_ECHO_H
+#ifndef ECHO_REQUEST_HANDLER_H
+#define ECHO_REQUEST_HANDLER_H
 
 #include <iostream>
 
@@ -19,4 +15,4 @@ class EchoRequestHandler : public RequestHandler {
                 response) override;
 };
 
-#endif  // REQUEST_HANDLER_ECHO_H
+#endif
