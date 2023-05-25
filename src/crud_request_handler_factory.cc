@@ -1,22 +1,19 @@
 #include "crud_request_handler_factory.h"
 
 #include "crud_request_handler.h"
-#include "real_file_system.h"
+#include "file_system.h"
 #include "request_handler.h"
 
 CRUDRequestHandlerFactory::CRUDRequestHandlerFactory(const std::string& path,
                                                      const NginxConfig& config)
     : path_(path),
       config_(config),
-      fs(new RealFileSystem()),
-      entity_manager_(fs) {
+      file_system_(std::make_shared<FileSystem>()) {
     parseConfig();
 }
 
-CRUDRequestHandlerFactory::~CRUDRequestHandlerFactory() { delete fs; }
-
 std::shared_ptr<RequestHandler> CRUDRequestHandlerFactory::createHandler() {
-    return std::make_shared<CRUDRequestHandler>(path_, root_, entity_manager_);
+    return std::make_shared<CRUDRequestHandler>(path_, root_, file_system_);
 }
 
 void CRUDRequestHandlerFactory::parseConfig() {

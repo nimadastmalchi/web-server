@@ -12,7 +12,7 @@ status EchoRequestHandler::handle_request(
     req_stream << request;
     std::string content = req_stream.str();
     response.version(request.version());
-    response.result(200);
+    response.result(http::status::ok);
     response.set(http::field::content_type, "text/plain");
     response.body() = content;
     response.prepare_payload();

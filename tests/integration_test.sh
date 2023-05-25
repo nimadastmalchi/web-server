@@ -107,6 +107,76 @@ else
     exit_status=1
 fi
 
+################# Test 9 #################
+actual_output=$(curl --header "Content-Type: application/json" \
+    --request POST \
+    --data "test" \
+    $host:$EXPOSED_PORT/api/test --output -)
+expected_output=$'{"id": 1}'
+if [ "$actual_output" = "$expected_output" ]; then
+    echo "Integration Test 9 passed"
+else
+    echo "Integration Test 9 failed"
+    exit_status=1
+fi
+
+################# Test 10 #################
+actual_output=$(curl --header "Content-Type: application/json" \
+    --request GET \
+    $host:$EXPOSED_PORT/api/test/1 --output -)
+expected_output=$'test'
+if [ "$actual_output" = "$expected_output" ]; then
+    echo "Integration Test 10 passed"
+else
+    echo "Integration Test 10 failed"
+    exit_status=1
+fi
+
+################# Test 11 #################
+actual_output=$(curl --header "Content-Type: application/json" \
+    --request GET \
+    $host:$EXPOSED_PORT/api/test --output -)
+expected_output=$'[1]'
+if [ "$actual_output" = "$expected_output" ]; then
+    echo "Integration Test 11 passed"
+else
+    echo "Integration Test 11 failed"
+    exit_status=1
+fi
+
+################# Test 12 #################
+curl --header "Content-Type: application/json" \
+    --request PUT \
+    --data "update_test" \
+    $host:$EXPOSED_PORT/api/test/1 --output -
+
+actual_output=$(curl --header "Content-Type: application/json" \
+    --request GET \
+    $host:$EXPOSED_PORT/api/test/1 --output -)
+expected_output=$'update_test'
+if [ "$actual_output" = "$expected_output" ]; then
+    echo "Integration Test 12 passed"
+else
+    echo "Integration Test 12 failed"
+    exit_status=1
+fi
+
+################# Test 13 #################
+curl --header "Content-Type: application/json" \
+    --request DELETE \
+    $host:$EXPOSED_PORT/api/test/1 --output -
+
+actual_output=$(curl --header "Content-Type: application/json" \
+    --request GET \
+    $host:$EXPOSED_PORT/api/test --output -)
+expected_output=$'[]'
+if [ "$actual_output" = "$expected_output" ]; then
+    echo "Integration Test 13 passed"
+else
+    echo "Integration Test 13 failed"
+    exit_status=1
+fi
+
 # Kill server
 kill -9 $server_pid
 

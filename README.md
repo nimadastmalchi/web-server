@@ -268,33 +268,3 @@ gtest_discover_tests(static_request_handler_test WORKING_DIRECTORY ${CMAKE_CURRE
 generate_coverage_report(TARGETS server ... TESTS config_parser_test ... static_request_handler_test static_request_handler_factory_test)
 ...
 ```
-
-### 6. Documentation for how the CRUD API Handler should behave in edge cases:
-In addition to common HTTP response codes like 200 and 404, we need to account for edge cases to make our API more robust. Some of these edge cases include scenarios such as invalid requests, created, and no content. Below, are some common edge cases we handled along with their behaviors and the detailed documentation for each scenario:
-
-1. Invalid Request Body (400 Bad Request):
-    - Description: When the request body is malformed, incomplete, or contains invalid data.
-    - Behavior: Return a 400 Bad Request status code along with an error message or details about the specific validation failure.
-    - Documentation:
-        - Response Status Code: 400 Bad Request
-        - Response Body: { "error": "Invalid request body. Please provide valid data." }
-    - Places in CRUD Handler where we return this as the response:
-        - insert function of entity_manger.cc: if the number of parameters passed into the POST request is incorrect
-        - get_entity function of entity_manager.cc: if the number of parameters passed into the GET request is incorrect, then we also return a 400 error code
-        - update function of entity_manager.cc: if the number of tokens (after parsing request) passed into the PUT request is not equal to 2, then an incorrect number of arguments have been passed and we cannot fulfill this request
-        - delete_ function of entity_manager.cc: if the number of tokens (after parsing request) passed into the DELETE request is not equal to 2, then an incorrect number of arguments have been passed and we cannot fulfill this request
-
-2. Successful Creation (201 Created):
-    - Description: success status response code indicates that the request has succeeded and has led to the creation of a resource
-    - Behavior: Return a 201 Created status code along with the URI of the newly created resource in the response headers
-    - Documentation:
-        - Response Status Code: 201 Created
-    - Places where this is used in our code:
-        - insert function of entity_manger.cc: if the POST request led to a successful creation of an entity, then we return this HTTP status code.
-        - update function of entity_manager.cc: if the PUT request led to a successful creation of an entity or the successful updating of an entity, then we return this HTTP status code.
-
-3. No Content (204 No Content):
-    - Description: indicates that the server successfully processed the request, but there is no additional content to send back in the response body
-    - Behavior: Return a 204 No Content status code indicating that the request has succeeded, but that the client doesn't need to navigate away from its current page
-    - Places where this is used in our code:
-        - delete_ function of entity_manger.cc: if the DELETE request was successful then we return this status code since the user needs to choose what request to give after that.

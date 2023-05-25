@@ -16,5 +16,5 @@ class CrudRequestHandlerFactoryTest : public ::testing::Test {
 TEST_F(CrudRequestHandlerFactoryTest, ParseConfig) {
     CRUDRequestHandlerFactory handlerFactory("crud", config_);
 
-    EXPECT_EQ(handlerFactory.getRoot(), "path_test");
+    EXPECT_EQ(handlerFactory.getRoot(), "crud_test");
 }

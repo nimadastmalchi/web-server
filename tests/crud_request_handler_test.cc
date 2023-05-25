@@ -1,26 +1,24 @@
 #include "crud_request_handler.h"
 
-#include "entity_manager.h"
-#include "fake_file_system.h"
+#include <memory>
+
+#include "file_system.h"
 #include "gtest/gtest.h"
 
 using namespace boost::beast;
 
 class CRUDRequestHandlerTest : public ::testing::Test {
-        void SetUp() { fs = new FakeFileSystem(); }
-        void TearDown() { delete fs; }
-
     protected:
-        FakeFileSystem* fs;
+        void SetUp() override {}
+
+        std::shared_ptr<FakeFileSystem> file_system_ =
+            std::make_shared<FakeFileSystem>();
+        CRUDRequestHandler handler_ =
+            CRUDRequestHandler("test", "", file_system_);
 };
 
 TEST_F(CRUDRequestHandlerTest, BadMethod) {
-    EntityManager eman(fs);
-    CRUDRequestHandler handler_ = CRUDRequestHandler("", "crud_files", eman);
-
-    http::request<http::string_body> req;
-    req.method(http::verb::head);
-    req.target("test");
+    http::request<http::string_body> req{http::verb::head, "test/entity", 11};
     http::response<http::string_body> res;
     handler_.handle_request(req, res);
 
@@ -28,12 +26,7 @@ TEST_F(CRUDRequestHandlerTest, BadMethod) {
 }
 
 TEST_F(CRUDRequestHandlerTest, BadRequest) {
-    EntityManager eman(fs);
-    CRUDRequestHandler handler_ = CRUDRequestHandler("", "crud_files", eman);
-
-    http::request<http::string_body> req;
-    req.method(http::verb::post);
-    req.target("crud_files/hats");
+    http::request<http::string_body> req{http::verb::get, "test", 11};
     http::response<http::string_body> res;
     handler_.handle_request(req, res);
 
@@ -41,25 +34,20 @@ TEST_F(CRUDRequestHandlerTest, BadRequest) {
 }
 
 TEST_F(CRUDRequestHandlerTest, HandlePost) {
-    EntityManager eman(fs);
-    CRUDRequestHandler handler_ = CRUDRequestHandler("", "crud_files", eman);
-
-    http::request<http::string_body> req;
-    req.method(http::verb::post);
-    req.target("/hats");
+    http::request<http::string_body> req{http::verb::post, "test/entity", 11};
     http::response<http::string_body> res;
+
     handler_.handle_request(req, res);
+    EXPECT_EQ(res.body(), "{\"id\": 1}");
+
+    handler_.handle_request(req, res);
+    EXPECT_EQ(res.body(), "{\"id\": 2}");
 
     EXPECT_EQ(res.result(), http::status::created);
 }
 
 TEST_F(CRUDRequestHandlerTest, HandleGetNotFound) {
-    EntityManager eman(fs);
-    CRUDRequestHandler handler_ = CRUDRequestHandler("", "crud_files", eman);
-
-    http::request<http::string_body> req;
-    req.method(http::verb::get);
-    req.target("/hats/1");
+    http::request<http::string_body> req{http::verb::get, "test/entity/1", 11};
     http::response<http::string_body> res;
     handler_.handle_request(req, res);
 
@@ -67,92 +55,77 @@ TEST_F(CRUDRequestHandlerTest, HandleGetNotFound) {
 }
 
 TEST_F(CRUDRequestHandlerTest, HandleGet) {
-    fs->create_file("crud_files/hats/1");
-    fs->write_file("crud_files/hats/1", "test payload");
-    EntityManager eman(fs);
-    CRUDRequestHandler handler_ = CRUDRequestHandler("", "crud_files", eman);
+    file_system_->write_file("/entity/1", "test");
 
-    boost::beast::http::request<boost::beast::http::string_body> req;
-    req.method(http::verb::get);
-    req.target("/hats/1");
-    boost::beast::http::response<boost::beast::http::string_body> res;
+    http::request<http::string_body> req{http::verb::get, "test/entity/1", 11};
+    http::response<http::string_body> res;
     handler_.handle_request(req, res);
 
-    EXPECT_EQ(res.result(), boost::beast::http::status::ok);
-    EXPECT_EQ(res.body(), "test payload");
+    EXPECT_EQ(res.body(), "test");
+    EXPECT_EQ(res.result(), http::status::ok);
 }
 
 TEST_F(CRUDRequestHandlerTest, ListTest) {
-    EntityManager eman(fs);
-    CRUDRequestHandler handler_ = CRUDRequestHandler("", "crud_files", eman);
+    file_system_->write_file("/entity/1", "");
+    file_system_->write_file("/entity/2", "");
 
-    boost::beast::http::request<boost::beast::http::string_body> req;
-    req.method(http::verb::post);
-    req.target("/hats");
-    boost::beast::http::response<boost::beast::http::string_body> res;
-    handler_.handle_request(req, res);
-    handler_.handle_request(req, res);
+    http::request<http::string_body> req{http::verb::get, "test/entity", 11};
+    http::response<http::string_body> res;
     handler_.handle_request(req, res);
 
-    EXPECT_EQ(fs->read_file("crud_files/hats/list"), "[1,2,3]");
+    EXPECT_TRUE(res.body() == "[1, 2]" || res.body() == "[2, 1]");
+    EXPECT_EQ(res.result(), http::status::ok);
 }
 
 TEST_F(CRUDRequestHandlerTest, PutMethodExistingFile) {
-    fs->create_file("crud_files/hats/1");
-    EntityManager eman(fs);
-    CRUDRequestHandler handler_ = CRUDRequestHandler("", "crud_files", eman);
+    file_system_->write_file("/entity/1", "");
 
-    boost::beast::http::request<boost::beast::http::string_body> req;
-    req.method(http::verb::put);
-    req.target("/hats/1");
-    req.body() = "updated content";
-    boost::beast::http::response<boost::beast::http::string_body> res;
+    http::request<http::string_body> req{http::verb::put, "test/entity/1", 11};
+    req.body() = "test";
+    http::response<http::string_body> res;
 
-    std::string before_content = fs->read_file("crud_files/hats/1");
+    std::string before_content = file_system_->read_file("/entity/1").value();
     handler_.handle_request(req, res);
-    std::string after_content = fs->read_file("crud_files/hats/1");
+    std::string after_content = file_system_->read_file("/entity/1").value();
 
-    EXPECT_FALSE(before_content == after_content);
+    EXPECT_EQ(before_content, "");
+    EXPECT_EQ(after_content, "test");
+    EXPECT_EQ(res.result(), http::status::created);
 }
 
 TEST_F(CRUDRequestHandlerTest, PutMethodNonexistentFile) {
-    EntityManager eman(fs);
-    CRUDRequestHandler handler_ = CRUDRequestHandler("", "crud_files", eman);
+    http::request<http::string_body> req{http::verb::put, "test/entity/50", 11};
+    req.body() = "test";
+    http::response<http::string_body> res;
 
-    boost::beast::http::request<boost::beast::http::string_body> req;
-    req.method(http::verb::put);
-    req.target("/hats/13");
-    boost::beast::http::response<boost::beast::http::string_body> res;
+    handler_.handle_request(req, res);
+    EXPECT_EQ(res.result(), http::status::created);
+
+    req.method(http::verb::get);
     handler_.handle_request(req, res);
 
-    EXPECT_TRUE(fs->exists_file("crud_files/hats/13"));
-    EXPECT_FALSE(fs->exists_file("crud_files/hats/12"));
-    EXPECT_EQ(fs->read_file("crud_files/hats/list"), "[13]");
+    EXPECT_EQ(res.body(), "test");
+    EXPECT_EQ(res.result(), http::status::ok);
 }
 
 TEST_F(CRUDRequestHandlerTest, DeleteMethodNotFound) {
-    EntityManager eman(fs);
-    CRUDRequestHandler handler_ = CRUDRequestHandler("", "crud_files", eman);
-
-    boost::beast::http::request<boost::beast::http::string_body> req;
-    req.method(http::verb::delete_);
-    req.target("/hats/11");
-    boost::beast::http::response<boost::beast::http::string_body> res;
+    http::request<http::string_body> req{http::verb::delete_, "entity/100", 11};
+    http::response<http::string_body> res;
     handler_.handle_request(req, res);
 
-    EXPECT_EQ(res.result(), boost::beast::http::status::not_found);
+    EXPECT_EQ(res.result(), http::status::not_found);
 }
 
 TEST_F(CRUDRequestHandlerTest, DeleteMethodSuccess) {
-    fs->create_file("crud_files/hats/11");
-    EntityManager eman(fs);
-    CRUDRequestHandler handler_ = CRUDRequestHandler("", "crud_files", eman);
+    file_system_->write_file("/entity/1", "");
 
-    boost::beast::http::request<boost::beast::http::string_body> req;
-    req.method(http::verb::delete_);
-    req.target("/hats/11");
-    boost::beast::http::response<boost::beast::http::string_body> res;
+    http::request<http::string_body> req{http::verb::delete_, "test/entity/1",
+                                         11};
+    http::response<http::string_body> res;
+
     handler_.handle_request(req, res);
+    EXPECT_EQ(res.result(), http::status::no_content);
 
-    EXPECT_FALSE(fs->exists_file("crud_files/hats/11"));
+    handler_.handle_request(req, res);
+    EXPECT_EQ(res.result(), http::status::not_found);
 }

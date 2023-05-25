@@ -1,46 +1,40 @@
 #ifndef REQUEST_HANDLER_CRUD_H
 #define REQUEST_HANDLER_CRUD_H
 
+#include <memory>
 #include <string>
+#include <vector>
 
-#include "entity_manager.h"
+#include "config_parser.h"
+#include "file_system.h"
 #include "request_handler.h"
+
+namespace http = boost::beast::http;
 
 class CRUDRequestHandler : public RequestHandler {
     public:
-        CRUDRequestHandler(const std::string& path, const std::string& root,
-                           EntityManager& entity_manager);
+        CRUDRequestHandler(const std::string& path,
+                           const std::string& data_path,
+                           std::shared_ptr<FileSystem> file_system);
 
-        status handle_request(
-            const boost::beast::http::request<boost::beast::http::string_body>&
-                request,
-            boost::beast::http::response<boost::beast::http::string_body>&
-                response) override;
+        status handle_request(const http::request<http::string_body>& request,
+                              http::response<http::string_body>& response);
 
     private:
-        status handle_create(
-            const boost::beast::http::request<boost::beast::http::string_body>&
-                request,
-            boost::beast::http::response<boost::beast::http::string_body>&
-                response);
-        status handle_retrieve_or_list(
-            const boost::beast::http::request<boost::beast::http::string_body>&
-                request,
-            boost::beast::http::response<boost::beast::http::string_body>&
-                response);
-        status handle_update(
-            const boost::beast::http::request<boost::beast::http::string_body>&
-                request,
-            boost::beast::http::response<boost::beast::http::string_body>&
-                response);
-        status handle_delete(
-            const boost::beast::http::request<boost::beast::http::string_body>&
-                request,
-            boost::beast::http::response<boost::beast::http::string_body>&
-                response);
-        std::string root_;
-        std::string prefix_;
-        EntityManager& entity_manager_;
+        std::vector<std::string> parse_request_path(std::string request_str);
+
+        status handle_get(const http::request<http::string_body>& request,
+                          http::response<http::string_body>& response);
+        status handle_create(const http::request<http::string_body>& request,
+                             http::response<http::string_body>& response);
+        status handle_delete(const http::request<http::string_body>& request,
+                             http::response<http::string_body>& response);
+        status handle_put(const http::request<http::string_body>& request,
+                          http::response<http::string_body>& response);
+
+        std::string path_;
+        std::string data_path_;
+        std::shared_ptr<FileSystem> file_system_;
 };
 
 #endif
