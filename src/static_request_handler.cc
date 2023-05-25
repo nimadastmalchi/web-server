@@ -67,7 +67,7 @@ status StaticRequestHandler::handle_request(
     response.version(request.version());
     response.set(http::field::content_type, "text/plain");
     response.set(http::field::content_length, std::to_string(body.length()));
-    response.body() = std::move(body);    
+    response.body() = std::move(body);
 
     response.prepare_payload();
 

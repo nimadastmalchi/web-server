@@ -1,4 +1,5 @@
 #include "crud_request_handler.h"
+
 #include "entity_manager.h"
 #include "fake_file_system.h"
 #include "gtest/gtest.h"
@@ -6,12 +7,9 @@
 using namespace boost::beast;
 
 class CRUDRequestHandlerTest : public ::testing::Test {
-    void SetUp() {
-        fs = new FakeFileSystem();
-    }
-    void TearDown() {
-        delete fs;
-    }
+        void SetUp() { fs = new FakeFileSystem(); }
+        void TearDown() { delete fs; }
+
     protected:
         FakeFileSystem* fs;
 };
@@ -109,7 +107,7 @@ TEST_F(CRUDRequestHandlerTest, PutMethodExistingFile) {
     req.target("/hats/1");
     req.body() = "updated content";
     boost::beast::http::response<boost::beast::http::string_body> res;
-    
+
     std::string before_content = fs->read_file("crud_files/hats/1");
     handler_.handle_request(req, res);
     std::string after_content = fs->read_file("crud_files/hats/1");

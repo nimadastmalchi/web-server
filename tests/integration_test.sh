@@ -20,7 +20,7 @@ sleep 5
 
 ################# Test 1 #################
 actual_output=$(curl --header "test:test" $host:$EXPOSED_PORT/echo --max-time $DELAY)
-expected_output=$'GET echo HTTP/1.1\r\nHost: '"$host"$'\r\r\nUser-Agent: curl/7.81.0\r\r\nAccept: */*\r\r\ntest: test\r\n\r'
+expected_output=$'GET echo HTTP/1.1\r\nHost: '"$host"$'\r\nUser-Agent: curl/7.81.0\r\nAccept: */*\r\ntest: test\r\n\r'
 if [ "$actual_output" = "$expected_output" ]; then
     echo "Integration Test 1 passed"
 else
@@ -30,7 +30,7 @@ fi
 
 ################# Test 2 #################
 actual_output=$(curl --header "Accept: test" $host:$EXPOSED_PORT/echo --max-time $DELAY)
-expected_output=$'GET echo HTTP/1.1\r\nHost: '"$host"$'\r\r\nUser-Agent: curl/7.81.0\r\r\nAccept: test\r\n\r'
+expected_output=$'GET echo HTTP/1.1\r\nHost: '"$host"$'\r\nUser-Agent: curl/7.81.0\r\nAccept: test\r\n\r'
 if [ "$actual_output" = "$expected_output" ]; then
     echo "Integration Test 2 passed"
 else
@@ -40,7 +40,7 @@ fi
 
 ################# Test 3 #################
 actual_output=$(curl --header "" $host:$EXPOSED_PORT/echo --max-time $DELAY)
-expected_output=$'GET echo HTTP/1.1\r\nHost: '"$host"$'\r\r\nUser-Agent: curl/7.81.0\r\r\nAccept: */*\r\n\r'
+expected_output=$'GET echo HTTP/1.1\r\nHost: '"$host"$'\r\nUser-Agent: curl/7.81.0\r\nAccept: */*\r\n\r'
 if [ "$actual_output" = "$expected_output" ]; then
     echo "Integration Test 3 passed"
 else

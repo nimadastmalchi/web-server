@@ -1,15 +1,15 @@
 #include "real_file_system.h"
-#include <iostream>
+
+#include <boost/log/trivial.hpp>
 #include <filesystem>
 #include <fstream>
-#include <boost/log/trivial.hpp>
+#include <iostream>
 
-RealFileSystem::RealFileSystem() : FileSystem() {
-
-}
+RealFileSystem::RealFileSystem() : FileSystem() {}
 
 bool RealFileSystem::exists_file(std::string file_path) {
-    return std::filesystem::exists(file_path) && !std::filesystem::is_directory(file_path);
+    return std::filesystem::exists(file_path) &&
+           !std::filesystem::is_directory(file_path);
 }
 
 bool RealFileSystem::create_file(std::string file_path) {
@@ -31,15 +31,14 @@ bool RealFileSystem::write_file(std::string file_path, std::string contents) {
         return false;
     }
     file << contents;
-    file.close();  
+    file.close();
     return true;
 }
 
 bool RealFileSystem::delete_file(std::string file_path) {
     try {
         std::filesystem::remove(file_path);
-    } 
-    catch (const std::filesystem::filesystem_error& error) {
+    } catch (const std::filesystem::filesystem_error& error) {
         return false;
     }
     return true;
@@ -59,7 +58,8 @@ std::string RealFileSystem::read_file(std::string file_path) {
 }
 
 bool RealFileSystem::exists_directory(std::string directory_path) {
-    return std::filesystem::exists(directory_path) && std::filesystem::is_directory(directory_path);
+    return std::filesystem::exists(directory_path) &&
+           std::filesystem::is_directory(directory_path);
 }
 
 bool RealFileSystem::create_directory(std::string directory_path) {
@@ -71,6 +71,6 @@ bool RealFileSystem::delete_directory(std::string directory_path) {
         std::filesystem::remove(directory_path);
     } catch (...) {
         return false;
-    } 
-    return true;   
+    }
+    return true;
 }

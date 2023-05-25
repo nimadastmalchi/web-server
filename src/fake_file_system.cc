@@ -1,8 +1,6 @@
 #include "fake_file_system.h"
 
-FakeFileSystem::FakeFileSystem() : FileSystem() {
-
-}
+FakeFileSystem::FakeFileSystem() : FileSystem() {}
 
 bool FakeFileSystem::exists_file(std::string file_path) {
     return files.find(file_path) != files.end();
@@ -60,7 +58,8 @@ bool FakeFileSystem::create_directory(std::string directory_path) {
     return true;
 }
 
-std::vector<std::string> FakeFileSystem::parse_directories(std::string directory_path) {
+std::vector<std::string> FakeFileSystem::parse_directories(
+    std::string directory_path) {
     std::vector<std::string> directories = {""};
     for (int i = 0; i < directory_path.size(); i++) {
         if (directory_path[i] == '/') {

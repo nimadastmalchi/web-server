@@ -1,4 +1,5 @@
 #include "fake_file_system.h"
+
 #include "gtest/gtest.h"
 
 class FakeFileSystemTest : public ::testing::Test {

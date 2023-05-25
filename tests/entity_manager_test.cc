@@ -1,32 +1,29 @@
 #include "entity_manager.h"
+
 #include "fake_file_system.h"
 #include "gtest/gtest.h"
 
 class EntityManagerTest : public ::testing::Test {
-    void SetUp() {
-        fs = new FakeFileSystem();
-    }
-    void TearDown() {
-        delete fs;
-    }
+        void SetUp() { fs = new FakeFileSystem(); }
+        void TearDown() { delete fs; }
+
     protected:
         FakeFileSystem* fs;
 };
 
 TEST_F(EntityManagerTest, InsertBadPath) {
     EntityManager eman(fs);
-    
+
     bool success = true;
     boost::beast::http::request<boost::beast::http::string_body> request;
     request.target("/shoes");
     boost::beast::http::response<boost::beast::http::string_body> response;
     try {
         eman.insert("bad path", "crud_files", request, response);
-    }
-    catch (...) {   
+    } catch (...) {
         success = false;
     }
-    
+
     EXPECT_FALSE(success);
 }
 
@@ -81,11 +78,10 @@ TEST_F(EntityManagerTest, GetEntityBadPath) {
 
     try {
         eman.get_entity("bad path", "crud_files", request, response);
-    }
-    catch (...) {   
+    } catch (...) {
         success = false;
     }
-    
+
     EXPECT_FALSE(success);
 }
 
@@ -125,7 +121,7 @@ TEST_F(EntityManagerTest, UpdateExistingFile) {
     boost::beast::http::response<boost::beast::http::string_body> response;
 
     bool updated = eman.update("", "crud_files", request, response);
-    
+
     EXPECT_TRUE(updated);
     EXPECT_TRUE(fs->exists_file("crud_files/shoes/12"));
     EXPECT_FALSE(fs->exists_file("crud_files/shoes/11"));
