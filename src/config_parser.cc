@@ -21,6 +21,7 @@
 #include "logger.h"
 #include "not_found_handler_factory.h"
 #include "request_handler_factory.h"
+#include "sleep_request_handler_factory.h"
 #include "static_request_handler_factory.h"
 
 std::string NginxConfig::ToString(int depth) {
@@ -79,6 +80,28 @@ int NginxConfig::getPort() {
     return -1;  // Ret type should be int to cover -1
 }
 
+int NginxConfig::getNumWorkers() {
+    // First traverse statements without child blocks
+    for (auto pStatement : statements_) {
+        if (pStatement->child_block_.get() == nullptr) {
+            if (pStatement->tokens_.size() == 2 &&
+                pStatement->tokens_[0] == "num_workers") {
+                int ret = std::stoi(pStatement->tokens_[1]);
+                return (ret >= 1) ? ret : -1;  // Valid num workers range
+            }
+        }
+    }
+    // Then traverse statements with child blocks
+    for (auto pStatement : statements_) {
+        if (pStatement->child_block_.get() != nullptr) {
+            int ret;
+            if ((ret = pStatement->child_block_->getNumWorkers()) != -1)
+                return ret;
+        }
+    }
+    return -1;  // Ret type should be int to cover -1
+}
+
 std::shared_ptr<RequestHandlerFactory> createHandlerFactory(
     const std::string& name, const std::string& uri,
     const NginxConfig& location) {
@@ -88,6 +111,8 @@ std::shared_ptr<RequestHandlerFactory> createHandlerFactory(
         return std::make_shared<EchoRequestHandlerFactory>(uri, location);
     } else if (name == "CRUDHandler") {
         return std::make_shared<CRUDRequestHandlerFactory>(uri, location);
+    } else if (name == "SleepHandler") {
+        return std::make_shared<SleepRequestHandlerFactory>(uri, location);
     } else {
         return std::make_shared<NotFoundHandlerFactory>(uri, location);
     }

@@ -27,6 +27,7 @@ class NginxConfig {
         std::string ToString(int depth = 0);
         std::vector<std::shared_ptr<NginxConfigStatement>> statements_;
         int getPort();
+        int getNumWorkers();
         std::map<std::string, std::shared_ptr<RequestHandlerFactory>>
         getHandlerFactoryMapping();
 };

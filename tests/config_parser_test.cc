@@ -1,9 +1,11 @@
 #include "config_parser.h"
 
+#include "crud_request_handler_factory.h"
 #include "echo_request_handler_factory.h"
 #include "gtest/gtest.h"
 #include "not_found_handler_factory.h"
 #include "request_handler_factory.h"
+#include "sleep_request_handler_factory.h"
 #include "static_request_handler_factory.h"
 
 class NginxConfigParserTest : public ::testing::Test {
@@ -82,8 +84,23 @@ TEST_F(NginxConfigParserTest, HandlerFactoryMapConfig) {
                     handlerFactories["echo"].get()) != nullptr);
     EXPECT_TRUE(dynamic_cast<StaticRequestHandlerFactory*>(
                     handlerFactories["static"].get()) != nullptr);
+    EXPECT_TRUE(dynamic_cast<CRUDRequestHandlerFactory*>(
+                    handlerFactories["api"].get()) != nullptr);
+    EXPECT_TRUE(dynamic_cast<SleepRequestHandlerFactory*>(
+                    handlerFactories["sleep"].get()) != nullptr);
     EXPECT_TRUE(dynamic_cast<NotFoundHandlerFactory*>(
                     handlerFactories[""].get()) != nullptr);
+}
+
+TEST_F(NginxConfigParserTest, NumWorkersPassParseConfig) {
+    bool success = parser_.Parse("pass_test11", &out_config_);
+    EXPECT_TRUE(success);
+
+    int port = out_config_.getNumWorkers();
+    EXPECT_EQ(port, 10);
+
+    std::string repr = out_config_.ToString();
+    EXPECT_EQ(repr, "server {\n  num_workers 10;\n}\n");
 }
 
 TEST_F(NginxConfigParserTest, NonexistentConfig) {
@@ -129,4 +146,10 @@ TEST_F(NginxConfigParserTest, SemicolonAfterCommentConfig) {
 TEST_F(NginxConfigParserTest, UnmatchedDoubleQuoteConfig) {
     bool success = parser_.Parse("fail_test8", &out_config_);
     EXPECT_FALSE(success);
+}
+
+TEST_F(NginxConfigParserTest, NumWorkersFailsParseConfig) {
+    bool success = parser_.Parse("fail_test9", &out_config_);
+    EXPECT_TRUE(success);
+    EXPECT_EQ(out_config_.getNumWorkers(), -1);
 }

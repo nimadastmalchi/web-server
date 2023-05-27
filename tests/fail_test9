@@ -1,0 +1,3 @@
+server {
+    num_workers -1;
+}

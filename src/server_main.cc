@@ -16,6 +16,8 @@
 #include <iostream>
 #include <map>
 #include <memory>
+#include <thread>
+#include <vector>
 
 #include "config_parser.h"
 #include "logger.h"
@@ -67,6 +69,13 @@ int main(int argc, char* argv[]) {
             return -1;
         }
 
+        int num_workers = config.getNumWorkers();
+        if (num_workers == -1) {
+            Logger::log_error("Invalid number of workers: " +
+                              std::to_string(num_workers) + " provided");
+            return -1;
+        }
+
         std::map<std::string, std::shared_ptr<RequestHandlerFactory>>
             handlerFactories = config.getHandlerFactoryMapping();
 
@@ -82,7 +91,15 @@ int main(int argc, char* argv[]) {
                                              handlerFactories);
                       });
         Logger::log_info("Server listening on port " + std::to_string(port));
-        io_service.run();
+        std::vector<std::thread> workers;
+        for (int i = 0; i < num_workers; i++) {
+            workers.emplace_back([&io_service]() { io_service.run(); });
+        }
+        Logger::log_info("Spawned " + std::to_string(num_workers) +
+                         " worker threads to handle requests");
+        for (auto& worker : workers) {
+            worker.join();
+        }
     } catch (std::exception& e) {
         std::cerr << "Exception: " << e.what() << "\n";
         Logger::log_error("Exception: " + std::string(e.what()));

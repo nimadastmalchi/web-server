@@ -12,4 +12,12 @@ server {
     location / NotFoundHandler {
 
     }
+
+    location /api CRUDHandler {
+        data_path /entities;
+    }
+
+    location /sleep SleepHandler {
+        sleep_seconds 5;
+    }    
 }
