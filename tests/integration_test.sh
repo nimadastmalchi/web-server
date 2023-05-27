@@ -1,6 +1,6 @@
 PATH_TO_BIN="../build/bin/server"
 PATH_TO_CONFIG="../src/server_config"
-DELAY=1 # How long to wait for each curl request
+DELAY=5 # How long to wait for each curl request
 EXPOSED_PORT=80
 
 # Store host IP
@@ -53,7 +53,7 @@ touch img/file.txt
 echo "hello world" > img/file.txt
 
 ################# Test 4 #################
-actual_output=$(curl --header "" $host:$EXPOSED_PORT/static/all/img/file.txt --output -)
+actual_output=$(curl --max-time $DELAY --header "" $host:$EXPOSED_PORT/static/all/img/file.txt --output -)
 expected_output="hello world"
 if [ "$actual_output" = "$expected_output" ]; then
     echo "Integration Test 4 passed"
@@ -63,7 +63,7 @@ else
 fi
 
 ################# Test 5 #################
-actual_output=$(curl --header "" $host:$EXPOSED_PORT/static/image/file.txt --output -)
+actual_output=$(curl  --max-time $DELAY --header "" $host:$EXPOSED_PORT/static/image/file.txt --output -)
 expected_output="hello world"
 if [ "$actual_output" = "$expected_output" ]; then
     echo "Integration Test 5 passed"
@@ -76,7 +76,7 @@ head -c 200000 /dev/urandom > img/200thousandbytes.txt
 head -c 100 /dev/urandom > img/100bytes.txt
 
 ################# Test 6 #################
-actual_output=$(curl --header "" $host:$EXPOSED_PORT/static/image/200thousandbytes.txt --output -)
+actual_output=$(curl --max-time $DELAY --header "" $host:$EXPOSED_PORT/static/image/200thousandbytes.txt --output -)
 expected_output="$(cat img/200thousandbytes.txt)"
 if [ "$actual_output" = "$expected_output" ]; then
     echo "Integration Test 6 passed"
@@ -86,7 +86,7 @@ else
 fi
 
 ################# Test 7 #################
-actual_output=$(curl --header "" $host:$EXPOSED_PORT/static/image/100bytes.txt --output -)
+actual_output=$(curl --max-time $DELAY --header "" $host:$EXPOSED_PORT/static/image/100bytes.txt --output -)
 expected_output="$(cat img/100bytes.txt)"
 if [ "$actual_output" = "$expected_output" ]; then
     echo "Integration Test 7 passed"
@@ -98,7 +98,7 @@ fi
 rm img/file.txt img/200thousandbytes.txt img/100bytes.txt
 
 ################# Test 8 #################
-actual_output=$(curl --header "" $host:$EXPOSED_PORT/does_not_exist --output -)
+actual_output=$(curl --max-time $DELAY --header "" $host:$EXPOSED_PORT/does_not_exist --output -)
 expected_output=$'<html><head><title>404 Not Found</title></head><body><p>404 Not Found</p></body></html>'
 if [ "$actual_output" = "$expected_output" ]; then
     echo "Integration Test 8 passed"
@@ -108,7 +108,7 @@ else
 fi
 
 ################# Test 9 #################
-actual_output=$(curl --header "Content-Type: application/json" \
+actual_output=$(curl --max-time $DELAY --header "Content-Type: application/json" \
     --request POST \
     --data "test" \
     $host:$EXPOSED_PORT/api/test --output -)
@@ -121,7 +121,7 @@ else
 fi
 
 ################# Test 10 #################
-actual_output=$(curl --header "Content-Type: application/json" \
+actual_output=$(curl --max-time $DELAY --header "Content-Type: application/json" \
     --request GET \
     $host:$EXPOSED_PORT/api/test/1 --output -)
 expected_output=$'test'
@@ -150,7 +150,7 @@ curl --header "Content-Type: application/json" \
     --data "update_test" \
     $host:$EXPOSED_PORT/api/test/1 --output -
 
-actual_output=$(curl --header "Content-Type: application/json" \
+actual_output=$(curl --max-time $DELAY --header "Content-Type: application/json" \
     --request GET \
     $host:$EXPOSED_PORT/api/test/1 --output -)
 expected_output=$'update_test'
@@ -166,7 +166,7 @@ curl --header "Content-Type: application/json" \
     --request DELETE \
     $host:$EXPOSED_PORT/api/test/1 --output -
 
-actual_output=$(curl --header "Content-Type: application/json" \
+actual_output=$(curl --max-time $DELAY --header "Content-Type: application/json" \
     --request GET \
     $host:$EXPOSED_PORT/api/test --output -)
 expected_output=$'[]'

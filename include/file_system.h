@@ -2,6 +2,7 @@
 #define FILE_SYSTEM_H
 
 #include <filesystem>
+#include <mutex>
 #include <optional>
 #include <string>
 #include <unordered_map>
@@ -21,6 +22,9 @@ class FileSystem {
     private:
         std::optional<std::filesystem::path> get_filesystem_path(
             const std::string& path, bool is_dir);
+        static std::mutex* get_path_lock(const std::string& path);
+        static std::unordered_map<std::string, std::mutex> locks;
+        static std::mutex file_system_map_lock;
 };
 
 /*

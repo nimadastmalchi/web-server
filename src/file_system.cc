@@ -2,9 +2,24 @@
 
 #include <filesystem>
 #include <fstream>
+#include <mutex>
 #include <optional>
 #include <string>
+#include <unordered_map>
 #include <vector>
+
+/*
+Path based map of locks.
+A single mutex locks access to the map itself.
+*/
+std::unordered_map<std::string, std::mutex> FileSystem::locks;
+std::mutex FileSystem::file_system_map_lock;
+
+std::mutex* FileSystem::get_path_lock(const std::string& path) {
+    std::lock_guard<std::mutex> guard(file_system_map_lock);
+    auto& path_lock = locks[path];
+    return &path_lock;
+}
 
 std::optional<std::filesystem::path> FileSystem::get_filesystem_path(
     const std::string& path, bool is_dir) {
@@ -32,6 +47,7 @@ std::optional<std::string> FileSystem::read_file(const std::string& path) {
 
 void FileSystem::write_file(const std::string& path,
                             const std::string& content) {
+    std::lock_guard<std::mutex> guard(*get_path_lock(path));
     std::ofstream file;
     file.open(path);
     file << content;
@@ -39,18 +55,21 @@ void FileSystem::write_file(const std::string& path,
 }
 
 bool FileSystem::initialize_directory(const std::string& directory_path) {
+    std::lock_guard<std::mutex> guard(*get_path_lock(directory_path));
     if (!std::filesystem::exists(directory_path) &&
         !std::filesystem::is_regular_file(directory_path)) {
         std::filesystem::create_directories(directory_path);
         return true;
     }
-
     return false;
 }
 
 bool FileSystem::delete_file(const std::string& path) {
+    std::lock_guard<std::mutex> guard(*get_path_lock(path));
     const auto file_path = get_filesystem_path(path, false);
-    if (!file_path.has_value()) return false;
+    if (!file_path.has_value()) {
+        return false;
+    }
     std::filesystem::remove(file_path.value());
     return true;
 }

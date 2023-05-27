@@ -23,6 +23,6 @@ server {
     }
 
     location /sleep SleepHandler {
-        sleep_seconds 5;
+        sleep_seconds 30;
     }
 }

@@ -12,6 +12,7 @@
 
 #include <boost/asio.hpp>
 #include <boost/bind.hpp>
+#include <boost/thread.hpp>
 #include <cstdlib>
 #include <iostream>
 #include <map>
@@ -91,15 +92,14 @@ int main(int argc, char* argv[]) {
                                              handlerFactories);
                       });
         Logger::log_info("Server listening on port " + std::to_string(port));
-        std::vector<std::thread> workers;
+        boost::thread_group tg;
         for (int i = 0; i < num_workers; i++) {
-            workers.emplace_back([&io_service]() { io_service.run(); });
+            tg.create_thread(
+                boost::bind(&boost::asio::io_service::run, &io_service));
         }
         Logger::log_info("Spawned " + std::to_string(num_workers) +
                          " worker threads to handle requests");
-        for (auto& worker : workers) {
-            worker.join();
-        }
+        tg.join_all();
     } catch (std::exception& e) {
         std::cerr << "Exception: " << e.what() << "\n";
         Logger::log_error("Exception: " + std::string(e.what()));
