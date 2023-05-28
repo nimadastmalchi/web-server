@@ -18,3 +18,7 @@ std::shared_ptr<RequestHandler> HealthRequestHandlerFactory::createHandler() {
 }
 
 void HealthRequestHandlerFactory::parseConfig() {}
+
+std::string HealthRequestHandlerFactory::getHandlerName() {
+    return "HealthHandler";
+}

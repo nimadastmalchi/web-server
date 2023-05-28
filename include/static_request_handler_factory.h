@@ -13,6 +13,7 @@ class StaticRequestHandlerFactory : public RequestHandlerFactory {
         StaticRequestHandlerFactory(const std::string& path,
                                     const NginxConfig& config);
         std::shared_ptr<RequestHandler> createHandler() override;
+        std::string getHandlerName() override;
         std::string getRoot();
 
     private:

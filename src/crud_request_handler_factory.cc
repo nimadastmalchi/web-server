@@ -33,4 +33,8 @@ void CRUDRequestHandlerFactory::parseConfig() {
     }
 }
 
+std::string CRUDRequestHandlerFactory::getHandlerName() {
+    return "CRUDHandler";
+}
+
 std::string CRUDRequestHandlerFactory::getRoot() { return root_; }

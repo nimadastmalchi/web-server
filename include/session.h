@@ -27,9 +27,12 @@ class session {
         int handle_read(const boost::system::error_code& error,
                         size_t bytes_transferred);
         int close_socket(const boost::system::error_code& error);
-        std::shared_ptr<RequestHandlerFactory> getRequestHandlerFactory(
+        std::shared_ptr<RequestHandlerFactory> get_handler_factory(
             const boost::beast::http::request<boost::beast::http::string_body>&
                 req);
+        void log_metrics_info(int response_code,
+                              const std::string& request_path,
+                              const std::string& handler_name);
 
         tcp::socket socket_;
 

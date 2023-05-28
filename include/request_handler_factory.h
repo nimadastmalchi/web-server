@@ -10,6 +10,7 @@
 class RequestHandlerFactory {
     public:
         virtual std::shared_ptr<RequestHandler> createHandler() = 0;
+        virtual std::string getHandlerName() = 0;
 
     private:
         virtual void parseConfig() = 0;

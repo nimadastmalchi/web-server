@@ -13,6 +13,7 @@ class SleepRequestHandlerFactory : public RequestHandlerFactory {
         SleepRequestHandlerFactory(const std::string& path,
                                    const NginxConfig& config);
         std::shared_ptr<RequestHandler> createHandler() override;
+        std::string getHandlerName() override;
         int getSleepSeconds();
 
     private:

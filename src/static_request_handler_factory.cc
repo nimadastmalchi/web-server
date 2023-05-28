@@ -34,4 +34,8 @@ void StaticRequestHandlerFactory::parseConfig() {
     }
 }
 
+std::string StaticRequestHandlerFactory::getHandlerName() {
+    return "StaticHandler";
+}
+
 std::string StaticRequestHandlerFactory::getRoot() { return root_; }

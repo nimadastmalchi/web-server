@@ -178,7 +178,7 @@ else
 fi
 
 ################# Test 14 #################
-actual_output=$(curl --header "" -v $host:$EXPOSED_PORT/sleep $host:$EXPOSED_PORT/echo --max-time $DELAY)
+actual_output=$(curl --header "" $host:$EXPOSED_PORT/sleep $host:$EXPOSED_PORT/echo --max-time $DELAY)
 expected_output=$'GET echo HTTP/1.1\r\nHost: '"$host"$'\r\nUser-Agent: curl/7.81.0\r\nAccept: */*\r\n\r'
 if [ "$actual_output" = "$expected_output" ]; then
     echo "Integration Test 14 passed"
@@ -188,7 +188,7 @@ else
 fi
 
 ################# Test 15 #################
-actual_output=$(curl --header "" -v $host:$EXPOSED_PORT/health --output -)
+actual_output=$(curl --header "" $host:$EXPOSED_PORT/health --output -)
 expected_output=$'OK'
 if [ "$actual_output" = "$expected_output" ]; then
     echo "Integration Test 15 passed"

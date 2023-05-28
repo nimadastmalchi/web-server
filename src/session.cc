@@ -37,7 +37,7 @@ session::session(tcp::socket socket,
 tcp::socket& session::socket() { return socket_; }
 
 void session::start() {
-    Logger::log_trace(socket(), "Session is ready to read from socket");
+    Logger::log_trace(socket_, "Session is ready to read from socket");
     socket_.async_read_some(
         boost::asio::buffer(data_ + bytes_read_, max_length - bytes_read_),
         boost::bind(&session::handle_read, this,
@@ -72,23 +72,30 @@ int session::handle_read(const boost::system::error_code& error,
                     request.body() = body;
                 }
             }
+            std::string initial_target = request.target().to_string();
             // Remove leading and trailing slashes:
-            request.target(stripSlashes(request.target().to_string()));
+            request.target(stripSlashes(initial_target));
             std::stringstream log_stream;
             log_stream << "Received request: " << request.method() << " "
                        << request.target();
-            Logger::log_trace(socket(), log_stream.str());
+            Logger::log_trace(socket_, log_stream.str());
             std::shared_ptr<RequestHandlerFactory> handlerFactory =
-                getRequestHandlerFactory(request);
+                get_handler_factory(request);
             if (handlerFactory != nullptr) {
                 // Create a new handler for each request:
                 std::shared_ptr<RequestHandler> handler =
                     handlerFactory->createHandler();
                 http::response<http::string_body> response;
                 handler->handle_request(request, response);
+
+                // Log for metrics:
+                log_metrics_info(response.result_int(), initial_target,
+                                 handlerFactory->getHandlerName());
+
                 std::stringstream res_stream;
                 res_stream << response;
                 responseStr_ = res_stream.str();
+
                 boost::asio::async_write(
                     socket_,
                     boost::asio::buffer(responseStr_, responseStr_.size()),
@@ -97,12 +104,15 @@ int session::handle_read(const boost::system::error_code& error,
                 return 0;
             } else {
                 // If a handler could not be found, the URI is unsupported:
-                Logger::log_trace(socket(), "Unknown URI, responding with 400");
+                Logger::log_trace(socket_, "Unknown URI, responding with 400");
 
                 http::response<http::empty_body> errorResponse;
                 errorResponse.version(request.version());
                 errorResponse.result(http::status::bad_request);
                 errorResponse.prepare_payload();
+
+                // Log for metrics:
+                log_metrics_info(400, initial_target, "Unknown");
 
                 std::stringstream res_stream;
                 res_stream << errorResponse;
@@ -118,7 +128,7 @@ int session::handle_read(const boost::system::error_code& error,
         } else if (request_parser_code == http::error::need_more) {
             // If the end of the request has not yet been reached, continue
             // reading:
-            Logger::log_trace(socket(),
+            Logger::log_trace(socket_,
                               "End of request not received, continue reading");
             socket_.async_read_some(
                 boost::asio::buffer(data_ + bytes_read_,
@@ -130,13 +140,15 @@ int session::handle_read(const boost::system::error_code& error,
             return 1;
         } else {
             // If the request failed to parse, send an error response:
-            Logger::log_trace(socket(),
-                              "Bad HTTP request, responding with 400");
+            Logger::log_trace(socket_, "Bad HTTP request, responding with 400");
 
             http::response<http::empty_body> errorResponse;
             errorResponse.version(request.version());
             errorResponse.result(http::status::bad_request);
             errorResponse.prepare_payload();
+
+            // Log for metrics:
+            log_metrics_info(400, "Unknown", "Unknown");
 
             std::stringstream res_stream;
             res_stream << errorResponse;
@@ -149,8 +161,7 @@ int session::handle_read(const boost::system::error_code& error,
             return 2;
         }
     } else {
-        Logger::log_error(socket(),
-                          "Error in session when reading from socket");
+        Logger::log_error(socket_, "Error in session when reading from socket");
         delete this;
 
         return 2;
@@ -165,19 +176,19 @@ int session::close_socket(const boost::system::error_code& error) {
         // Upon writing, reset all instance variables:
         memset(data_, 0, bytes_read_);
         bytes_read_ = 0;
-        Logger::log_trace(socket(), "Closing session");
+        Logger::log_trace(socket_, "Closing session");
         socket_.close();
 
         return 0;
     } else {
-        Logger::log_error(socket(), "Failed to send response, closing session");
+        Logger::log_error(socket_, "Failed to send response, closing session");
         delete this;
 
         return 1;
     }
 }
 
-std::shared_ptr<RequestHandlerFactory> session::getRequestHandlerFactory(
+std::shared_ptr<RequestHandlerFactory> session::get_handler_factory(
     const http::request<http::string_body>& req) {
     std::string uri = req.target().to_string();
     std::shared_ptr<RequestHandlerFactory> handlerFactory = nullptr;
@@ -194,4 +205,17 @@ std::shared_ptr<RequestHandlerFactory> session::getRequestHandlerFactory(
     }
 
     return handlerFactory;
+}
+
+void session::log_metrics_info(int response_code,
+                               const std::string& request_path,
+                               const std::string& handler_name) {
+    std::string address = socket_.is_open()
+                              ? socket_.remote_endpoint().address().to_string()
+                              : "Unknown";
+    std::string metrics_info =
+        "[ResponseMetrics] (Code: " + std::to_string(response_code) +
+        ") (Path: " + request_path + ") (IP: " + address +
+        ") (Handler: " + handler_name + ")";
+    Logger::log_trace(metrics_info);
 }

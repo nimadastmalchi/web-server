@@ -13,6 +13,7 @@ class NotFoundHandlerFactory : public RequestHandlerFactory {
         NotFoundHandlerFactory(const std::string& path,
                                const NginxConfig& config);
         std::shared_ptr<RequestHandler> createHandler() override;
+        std::string getHandlerName() override;
 
     private:
         void parseConfig() override;

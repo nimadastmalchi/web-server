@@ -18,3 +18,7 @@ std::shared_ptr<RequestHandler> NotFoundHandlerFactory::createHandler() {
 }
 
 void NotFoundHandlerFactory::parseConfig() {}
+
+std::string NotFoundHandlerFactory::getHandlerName() {
+    return "NotFoundHandler";
+}

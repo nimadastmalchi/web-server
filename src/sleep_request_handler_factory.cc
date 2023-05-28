@@ -37,4 +37,8 @@ void SleepRequestHandlerFactory::parseConfig() {
     }
 }
 
+std::string SleepRequestHandlerFactory::getHandlerName() {
+    return "SleepHandler";
+}
+
 int SleepRequestHandlerFactory::getSleepSeconds() { return sleep_seconds_; }

@@ -18,3 +18,7 @@ std::shared_ptr<RequestHandler> EchoRequestHandlerFactory::createHandler() {
 }
 
 void EchoRequestHandlerFactory::parseConfig() {}
+
+std::string EchoRequestHandlerFactory::getHandlerName() {
+    return "EchoHandler";
+}
