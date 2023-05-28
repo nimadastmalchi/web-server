@@ -19,10 +19,14 @@ server {
     }
 
     location /api CRUDHandler {
-        data_path /entities;
+        data_path /storage/entities;
     }
 
     location /sleep SleepHandler {
         sleep_seconds 30;
+    }
+
+    location /health HealthHandler {
+        
     }
 }

@@ -16,7 +16,7 @@ class SleepRequestHandlerTest : public ::testing::Test {
 };
 
 TEST_F(SleepRequestHandlerTest, FileNotFound) {
-    http::request<http::string_body> req{http::verb::get, "/sleep", 11};
+    http::request<http::string_body> req{http::verb::get, "sleep", 11};
     http::response<http::string_body> res;
 
     auto start = std::chrono::steady_clock::now();  // milliseconds

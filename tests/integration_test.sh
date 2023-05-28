@@ -50,11 +50,11 @@ fi
 
 mkdir -p img
 touch img/file.txt
-echo "hello world" > img/file.txt
+echo "test" > img/file.txt
 
 ################# Test 4 #################
 actual_output=$(curl --max-time $DELAY --header "" $host:$EXPOSED_PORT/static/all/img/file.txt --output -)
-expected_output="hello world"
+expected_output="test"
 if [ "$actual_output" = "$expected_output" ]; then
     echo "Integration Test 4 passed"
 else
@@ -63,8 +63,8 @@ else
 fi
 
 ################# Test 5 #################
-actual_output=$(curl  --max-time $DELAY --header "" $host:$EXPOSED_PORT/static/image/file.txt --output -)
-expected_output="hello world"
+actual_output=$(curl --max-time $DELAY --header "" $host:$EXPOSED_PORT/static/image/file.txt --output -)
+expected_output="test"
 if [ "$actual_output" = "$expected_output" ]; then
     echo "Integration Test 5 passed"
 else
@@ -184,6 +184,16 @@ if [ "$actual_output" = "$expected_output" ]; then
     echo "Integration Test 14 passed"
 else
     echo "Integration Test 14 failed"
+    exit_status=1
+fi
+
+################# Test 15 #################
+actual_output=$(curl --header "" -v $host:$EXPOSED_PORT/health --output -)
+expected_output=$'OK'
+if [ "$actual_output" = "$expected_output" ]; then
+    echo "Integration Test 15 passed"
+else
+    echo "Integration Test 15 failed"
     exit_status=1
 fi
 
