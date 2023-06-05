@@ -29,4 +29,8 @@ server {
     location /health HealthHandler {
         
     }
+
+    location /chess ChessHandler {
+        data_path /storage/chess/games;
+    }
 }

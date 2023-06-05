@@ -1,5 +1,6 @@
 #include "chess_request_handler.h"
 
+#include <cstdlib>
 #include <iostream>
 #include <sstream>
 #include <string>
@@ -12,8 +13,11 @@ namespace http = boost::beast::http;
 
 ChessRequestHandler::ChessRequestHandler(
     const std::string& path, const std::string& data_path,
-    std::shared_ptr<FileSystem> file_system)
-    : path_(path), data_path_(data_path), file_system_(file_system) {}
+    const std::string& address, std::shared_ptr<FileSystem> file_system)
+    : path_(path),
+      data_path_(data_path),
+      address_(address),
+      file_system_(file_system) {}
 
 // Helper function to extract ID suffix from full file path:
 std::string get_suffix(std::string request_str) {
@@ -58,9 +62,49 @@ status ChessRequestHandler::handle_get(
     return true;
 }
 
+// Handle POST /chess/new:
 status ChessRequestHandler::handle_create(
     const http::request<http::string_body>& request,
     http::response<http::string_body>& response) {
+    std::string request_str(request.target().data(), request.target().size());
+    std::string operation = request_str.substr(path_.size());
+
+    if (operation != "/new") {
+        Logger::log_trace("Bad Chess POST request");
+        response.version(request.version());
+        response.result(http::status::bad_request);
+        response.set(boost::beast::http::field::content_type, "text/plain");
+        response.body() = "";
+        response.prepare_payload();
+
+        return false;
+    }
+
+    // Generate a pseudo-random 5-digit ID:
+    std::srand((unsigned)std::time(NULL));
+    std::string new_id = std::to_string(std::rand() % 100000);
+    std::string file_path = data_path_ + "/" + new_id;
+    // Check that the ID doesn't already exist:
+    while (file_system_->read_file(file_path)) {
+        new_id = std::to_string(std::rand() % 100000);
+        file_path = data_path_ + "/" + new_id;
+    }
+
+    // Write the starting state of the game:
+    std::string file_body = "\n\nrnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR\n";
+    file_system_->write_file(file_path, file_body);
+
+    // Return the ID of the game:
+    http::status response_code = http::status::created;
+    std::string content_type = "application/json";
+    std::string response_body = "{\"id\": " + new_id + "}";
+
+    response.version(request.version());
+    response.result(response_code);
+    response.set(boost::beast::http::field::content_type, content_type);
+    response.body() = response_body;
+    response.prepare_payload();
+
     return true;
 }
 

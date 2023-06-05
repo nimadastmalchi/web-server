@@ -15,6 +15,7 @@ class ChessRequestHandler : public RequestHandler {
     public:
         ChessRequestHandler(const std::string& path,
                             const std::string& data_path,
+                            const std::string& address,
                             std::shared_ptr<FileSystem> file_system);
 
         status handle_request(const http::request<http::string_body>& request,
@@ -32,6 +33,7 @@ class ChessRequestHandler : public RequestHandler {
 
         std::string path_;
         std::string data_path_;
+        std::string address_;
         std::shared_ptr<FileSystem> file_system_;
 };
 
