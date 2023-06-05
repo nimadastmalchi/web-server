@@ -59,6 +59,49 @@ std::vector<std::string> ChessRequestHandler::parse_request_path(
 status ChessRequestHandler::handle_get(
     const http::request<http::string_body>& request,
     http::response<http::string_body>& response) {
+    std::string request_str(request.target().data(), request.target().size());
+    std::vector<std::string> parsed = parse_request_path(request_str);
+
+    int path_length = parsed.size();
+    if (path_length == 0) {
+        // Handle GET /chess:
+        // TODO...
+        return true;
+    } else if (path_length == 1) {
+        // Handle GET /chess/<id>:
+        std::string file_path = data_path_ + "/" + parsed[0];
+        // If the ID exists, return chessboard.html:
+        if (file_system_->read_file(file_path)) {
+            auto contents =
+                file_system_->read_file("/chess130/chessboard.html");
+            if (contents) {
+                response.body() = contents.value();
+                response.version(request.version());
+                response.result(http::status::ok);
+                response.set(http::field::content_type, "text/html");
+                response.prepare_payload();
+
+                return true;
+            }
+        }
+        NotFoundHandler not_found_handler;
+        return not_found_handler.handle_request(request, response);
+    } else if (path_length == 2) {
+        // Handle GET /chess/games/<id>:
+        // TODO...
+        return true;
+    } else {
+        // Bad request:
+        Logger::log_trace("Bad Chess GET request");
+        response.version(request.version());
+        response.result(http::status::bad_request);
+        response.set(boost::beast::http::field::content_type, "text/plain");
+        response.body() = "";
+        response.prepare_payload();
+
+        return false;
+    }
+
     return true;
 }
 

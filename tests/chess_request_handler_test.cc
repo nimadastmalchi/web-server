@@ -42,3 +42,31 @@ TEST_F(ChessRequestHandlerTest, HandleValidPost) {
     std::string file_body = file_system_->read_file("/" + game_id[1]).value();
     EXPECT_EQ(file_body, "\n\nrnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR\n");
 }
+
+TEST_F(ChessRequestHandlerTest, HandleBadGetPath) {
+    http::request<http::string_body> req{http::verb::get,
+                                         "test/too/many/directories", 11};
+    http::response<http::string_body> res;
+
+    handler_.handle_request(req, res);
+    EXPECT_EQ(res.result(), http::status::bad_request);
+}
+
+TEST_F(ChessRequestHandlerTest, HandleNonexistentGetID) {
+    http::request<http::string_body> req{http::verb::get, "test/0", 11};
+    http::response<http::string_body> res;
+
+    handler_.handle_request(req, res);
+    EXPECT_EQ(res.result(), http::status::not_found);
+}
+
+TEST_F(ChessRequestHandlerTest, HandleValidGetID) {
+    file_system_->write_file("/0", "test");
+    file_system_->write_file("/chess130/chessboard.html", "test");
+    http::request<http::string_body> req{http::verb::get, "test/0", 11};
+    http::response<http::string_body> res;
+
+    handler_.handle_request(req, res);
+    EXPECT_EQ(res.body(), "test");
+    EXPECT_EQ(res.result(), http::status::ok);
+}
