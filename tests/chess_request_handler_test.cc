@@ -154,3 +154,39 @@ TEST_F(ChessRequestHandlerTest, HomePageNotFound) {
     handler_.handle_request(req, res);
     EXPECT_EQ(res.result(), http::status::not_found);
 }
+
+TEST_F(ChessRequestHandlerTest, PutNewFenString) {
+    file_system_->write_file("/0", "0.0.0.0\n2.2.2.2\ntest\n");
+
+    // Update fen string:
+    http::request<http::string_body> req{http::verb::put, "test/games/0", 11};
+    req.body() = "new_test";
+    http::response<http::string_body> res;
+
+    handler_.handle_request(req, res);
+    EXPECT_EQ(res.result(), http::status::ok);
+
+    // Ensure fen string is updated:
+    std::string file_body = file_system_->read_file("/0").value();
+    EXPECT_EQ(file_body, "0.0.0.0\n2.2.2.2\nnew_test\n");
+}
+
+TEST_F(ChessRequestHandlerTest, InvalidPutRequestURI) {
+    file_system_->write_file("/0", "0.0.0.0\n2.2.2.2\ntest\n");
+
+    http::request<http::string_body> req{http::verb::put, "test/0", 11};
+    req.body() = "new_test";
+    http::response<http::string_body> res;
+
+    handler_.handle_request(req, res);
+    EXPECT_EQ(res.result(), http::status::not_found);
+}
+
+TEST_F(ChessRequestHandlerTest, PutRequestToNonExistentFile) {
+    http::request<http::string_body> req{http::verb::put, "test/games/0", 11};
+    req.body() = "new_test";
+    http::response<http::string_body> res;
+
+    handler_.handle_request(req, res);
+    EXPECT_EQ(res.result(), http::status::not_found);
+}

@@ -232,7 +232,45 @@ status ChessRequestHandler::handle_create(
 status ChessRequestHandler::handle_put(
     const http::request<http::string_body>& request,
     http::response<http::string_body>& response) {
-    return true;
+    // PUT chess/games/[id] -d [fen_string]
+
+    std::string request_str(request.target().data(), request.target().size());
+    std::vector<std::string> parsed_path = parse_request_path(request_str);
+
+    std::string new_fen(request.body().data(), request.body().size());
+
+    if (parsed_path.size() == 2) {
+        std::string file_path = data_path_ + "/" + parsed_path[1];
+        auto contents = file_system_->read_file(file_path);
+        if (contents) {
+            std::string file_body = contents.value();
+            std::vector<std::string> parsed_file_body =
+                parse_file_body(file_body);
+
+            if (parsed_file_body.size() != 3) {
+                // If the file is incorrectly formatted, delete it and return
+                // 404:
+                Logger::log_trace("Deleting incorrectly formatted file");
+                file_system_->delete_file(file_path);
+                NotFoundHandler not_found_handler;
+                return not_found_handler.handle_request(request, response);
+            }
+
+            std::string white_address = parsed_file_body[0];
+            std::string black_address = parsed_file_body[1];
+            std::string updated_file_body =
+                white_address + "\n" + black_address + "\n" + new_fen + "\n";
+            file_system_->write_file(file_path, updated_file_body);
+
+            response.version(request.version());
+            response.result(http::status::ok);
+
+            return true;
+        }
+    }
+    // If the URI is invalid or file doesn't exist, return 404:
+    NotFoundHandler not_found_handler;
+    return not_found_handler.handle_request(request, response);
 }
 
 status ChessRequestHandler::handle_request(
