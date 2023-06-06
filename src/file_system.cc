@@ -102,9 +102,7 @@ std::optional<std::string> FakeFileSystem::read_file(const std::string& path) {
 
 void FakeFileSystem::write_file(const std::string& path,
                                 const std::string& content) {
-    std::string file = "";
-    if (files_.find(path) != files_.end()) file = files_[path];
-    files_[path] = file + content;
+    files_[path] = content;
 }
 
 bool FakeFileSystem::delete_file(const std::string& path) {
