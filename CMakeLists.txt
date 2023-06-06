@@ -1,6 +1,11 @@
 cmake_minimum_required(VERSION 3.10.0)
 project(a2-team-please-adopt-me-nima)
 
+# Add compiler flags
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fprofile-arcs -ftest-coverage")
+# Add linker flags
+set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -lgcov --coverage")
+
 # Make sure developers do not run cmake in the main project directory, to keep
 # build artifacts from becoming clutter
 if (${CMAKE_SOURCE_DIR} STREQUAL ${CMAKE_BINARY_DIR})
@@ -37,7 +42,7 @@ include_directories(include)
 # Compile and link server executable
 add_library(config_parser_lib src/config_parser.cc)
 add_library(file_system_lib src/file_system.cc)
-add_library(handler_factory_lib src/file_system.cc src/echo_request_handler_factory.cc src/static_request_handler_factory.cc src/not_found_handler_factory.cc src/crud_request_handler_factory.cc src/sleep_request_handler_factory.cc src/health_request_handler_factory.cc)
+add_library(handler_factory_lib src/file_system.cc src/request_handler_factory.cc src/echo_request_handler_factory.cc src/static_request_handler_factory.cc src/not_found_handler_factory.cc src/crud_request_handler_factory.cc src/sleep_request_handler_factory.cc src/health_request_handler_factory.cc src/chess_request_handler_factory.cc)
 add_library(handler_lib src/echo_request_handler.cc src/static_request_handler.cc src/not_found_handler.cc src/crud_request_handler.cc src/sleep_request_handler.cc src/health_request_handler.cc src/chess_request_handler.cc)
 add_library(logger_lib src/logger.cc)
 add_library(server_lib src/server.cc src/session.cc)
@@ -105,6 +110,10 @@ gtest_discover_tests(crud_request_handler_factory_test WORKING_DIRECTORY ${CMAKE
 add_executable(sleep_request_handler_factory_test tests/sleep_request_handler_factory_test.cc)
 target_link_libraries(sleep_request_handler_factory_test config_parser_lib server_lib handler_factory_lib handler_lib logger_lib gtest_main Boost::filesystem Boost::log_setup Boost::log)
 gtest_discover_tests(sleep_request_handler_factory_test WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/tests)
+
+add_executable(chess_request_handler_factory_test tests/chess_request_handler_factory_test.cc)
+target_link_libraries(chess_request_handler_factory_test config_parser_lib server_lib handler_factory_lib handler_lib logger_lib gtest_main Boost::filesystem Boost::log_setup Boost::log)
+gtest_discover_tests(chess_request_handler_factory_test WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/tests)
 
 # Integration Tests (runs via `make test`)
 find_program(BASH_PROGRAM bash)

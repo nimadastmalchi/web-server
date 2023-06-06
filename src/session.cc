@@ -82,6 +82,15 @@ int session::handle_read(const boost::system::error_code& error,
             std::shared_ptr<RequestHandlerFactory> handlerFactory =
                 get_handler_factory(request);
             if (handlerFactory != nullptr) {
+                try {
+                    std::string address =
+                        socket_.remote_endpoint().address().to_string();
+                    handlerFactory->setAddress(address);
+                    log_stream << "Client IP address: " << address;
+                } catch (...) {
+                    // No remote_endpoint, so no ip address
+                    log_stream << "Cannot resolve remote endpoint";
+                }
                 // Create a new handler for each request:
                 std::shared_ptr<RequestHandler> handler =
                     handlerFactory->createHandler();

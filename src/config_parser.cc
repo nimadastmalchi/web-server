@@ -16,6 +16,7 @@
 #include <string>
 #include <vector>
 
+#include "chess_request_handler_factory.h"
 #include "crud_request_handler_factory.h"
 #include "echo_request_handler_factory.h"
 #include "health_request_handler_factory.h"
@@ -116,6 +117,8 @@ std::shared_ptr<RequestHandlerFactory> createHandlerFactory(
         return std::make_shared<SleepRequestHandlerFactory>(uri, location);
     } else if (name == "HealthHandler") {
         return std::make_shared<HealthRequestHandlerFactory>(uri, location);
+    } else if (name == "ChessHandler") {
+        return std::make_shared<ChessRequestHandlerFactory>(uri, location);
     } else {
         return std::make_shared<NotFoundHandlerFactory>(uri, location);
     }

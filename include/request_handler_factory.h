@@ -11,6 +11,10 @@ class RequestHandlerFactory {
     public:
         virtual std::shared_ptr<RequestHandler> createHandler() = 0;
         virtual std::string getHandlerName() = 0;
+        virtual void setAddress(std::string addy);
+
+    protected:
+        std::string address_;
 
     private:
         virtual void parseConfig() = 0;

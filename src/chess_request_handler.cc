@@ -19,20 +19,6 @@ ChessRequestHandler::ChessRequestHandler(
       address_(address),
       file_system_(file_system) {}
 
-// Helper function to extract ID suffix from full file path:
-std::string get_suffix(std::string request_str) {
-    std::string curr_symbol;
-    for (size_t i = 0; i < request_str.length(); i++) {
-        if (request_str[i] == '/') {
-            curr_symbol = "";
-        } else {
-            curr_symbol += request_str[i];
-        }
-    }
-
-    return curr_symbol;
-}
-
 std::vector<std::string> parse_file_body(std::string body) {
     std::vector<std::string> parsed;
     std::string curr_symbol = "";

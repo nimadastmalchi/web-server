@@ -16,7 +16,7 @@ CRUDRequestHandler::CRUDRequestHandler(const std::string& path,
     : path_(path), data_path_(data_path), file_system_(file_system) {}
 
 // Helper function to extract ID suffix from full file path:
-std::string get_suffix(std::string request_str) {
+static std::string get_suffix(std::string request_str) {
     std::string curr_symbol;
     for (size_t i = 0; i < request_str.length(); i++) {
         if (request_str[i] == '/') {
