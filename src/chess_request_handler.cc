@@ -17,7 +17,9 @@ ChessRequestHandler::ChessRequestHandler(
     : path_(path),
       data_path_(data_path),
       address_(address),
-      file_system_(file_system) {}
+      file_system_(file_system) {
+    file_system_->initialize_directory(data_path);
+}
 
 std::vector<std::string> parse_file_body(std::string body) {
     std::vector<std::string> parsed;
@@ -145,7 +147,7 @@ status ChessRequestHandler::handle_get(
                 role = "w";
                 updated_file_body =
                     address_ + "\n" + black_address + "\n" + fen + "\n";
-            } else if (black_address.empty()) {
+            } else if (black_address.empty() && white_address != address_) {
                 role = "b";
                 updated_file_body =
                     white_address + "\n" + address_ + "\n" + fen + "\n";

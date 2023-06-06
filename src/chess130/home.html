@@ -10,14 +10,16 @@
     <button id="btnstartgame" onclick="createGame()">Start a new chess game!</button>
     <script>
         function createGame() {
-            var apiUrl = 'https://pokeapi.co/api/v2/pokemon/ditto/'; // Dummy API, will be replaced.
-            fetch(apiUrl).then(response => {
+            var apiUrl = '/chess/new';
+            fetch(apiUrl, {
+                method: "POST"
+            }).then(response => {
                 return response.json();
             }).then(data => {
-                // TODO, get data and redirect
-                window.location.replace("https://google.com"); // placeholder redirect
+                const id = data.id;
+                window.location.replace(`/chess/${id}`);
             }).catch(err => {
-                alert("Failed to create new game");
+                alert(err);
             });
         }
     </script>

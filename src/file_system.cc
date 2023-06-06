@@ -55,9 +55,9 @@ void FileSystem::write_file(const std::string& path,
 }
 
 bool FileSystem::initialize_directory(const std::string& directory_path) {
-    std::lock_guard<std::mutex> guard(*get_path_lock(directory_path));
     if (!std::filesystem::exists(directory_path) &&
         !std::filesystem::is_regular_file(directory_path)) {
+        std::lock_guard<std::mutex> guard(*get_path_lock(directory_path));
         std::filesystem::create_directories(directory_path);
         return true;
     }

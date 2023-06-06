@@ -15,6 +15,10 @@
     <script>
         var board = null
         var game = new Chess()
+        var fen = ""
+
+        const pathname = window.location.pathname
+        const id = pathname.split("/").slice(-1)[0]
 
         function onDragStart(source, piece, position, orientation) {
             // do not pick up pieces if the game is over
@@ -44,10 +48,11 @@
         // update the board position after the piece snap
         // for castling, en passant, pawn promotion
         function onSnapEnd() {
-            board.position(game.fen())
+            board.position(game.fen(), true)
         }
 
         function updateStatus() {
+            console.log(fen)
             var status = ''
             var moveColor = 'White'
             if (game.turn() === 'b') {
@@ -81,11 +86,26 @@
             position: 'start',
             onDragStart: onDragStart,
             onDrop: onDrop,
-            onSnapEnd: onSnapEnd
+            onSnapEnd: onSnapEnd,
+            dropOffBoard: 'snapback'
         }
-        board = Chessboard('myBoard', config)
 
+        board = Chessboard('myBoard', config)
         updateStatus()
+
+        function getGameStatus() {
+            fetch(`/chess/games/${id}`).then(response => response.json()).then(data => {
+                console.log(JSON.stringify(data))
+                const role = data.role
+                console.log(game.turn(), role, game.turn() == role)
+                const orientation = role == 'w' ? 'white' : 'black'
+                board.orientation(orientation)
+                fen = data.fen
+            })
+        }
+
+
+        setInterval(getGameStatus, 5000);
     </script>
 </body>
 

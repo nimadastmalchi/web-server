@@ -33,4 +33,16 @@ server {
     location /chess ChessHandler {
         data_path /storage/chess/games;
     }
+
+    location /chess/css StaticHandler {
+        root src/chess130/css;
+    }
+
+    location /chess/js StaticHandler {
+        root /src/chess130/js;
+    }
+
+    location /chess/img StaticHandler {
+        root /src/chess130/img;
+    }
 }
