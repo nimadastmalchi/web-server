@@ -63,9 +63,12 @@ status StaticRequestHandler::handle_request(
     while (f.get(c)) body += c;
     f.close();
 
+    std::string extension = boost_path.extension().string();
+    if (extension[0] == '.') extension.erase(0, 1);
+
     response.result(http::status::ok);
     response.version(request.version());
-    response.set(http::field::content_type, "text/plain");
+    response.set(http::field::content_type, extensions_[extension]);
     response.set(http::field::content_length, std::to_string(body.length()));
     response.body() = std::move(body);
 

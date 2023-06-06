@@ -49,7 +49,7 @@ TEST_F(StaticRequestHandlerTest, ValidRequest) {
 
     expected_res.result(http::status::ok);
     expected_res.version(11);
-    expected_res.set(http::field::content_type, "text/plain");
+    expected_res.set(http::field::content_type, "image/png");
     expected_res.set(http::field::content_length,
                      std::to_string(expected_file_body.length()));
     expected_res.body() = std::move(expected_file_body);
