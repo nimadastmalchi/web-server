@@ -35,14 +35,14 @@ server {
     }
 
     location /chess/css StaticHandler {
-        root src/chess130/css;
+        root /chess130/css;
     }
 
     location /chess/js StaticHandler {
-        root /src/chess130/js;
+        root /chess130/js;
     }
 
     location /chess/img StaticHandler {
-        root /src/chess130/img;
+        root /chess130/img;
     }
 }
