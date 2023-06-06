@@ -1,10 +1,27 @@
 <!DOCTYPE html>
 <html lang="en">
-  <head>
-    <title>Chess130</title>
-  </head>
 
-  <body>
-    
-  </body>
+<head>
+    <title>Chess130</title>
+    <script src="https://code.jquery.com/jquery-3.5.1.min.js"></script>
+</head>
+
+<body>
+    <button id="btnstartgame" onclick="createGame()">Start a new chess game!</button>
+    <script>
+        function createGame() {
+            var apiUrl = 'https://pokeapi.co/api/v2/pokemon/ditto/'; // Dummy API, will be replaced.
+            fetch(apiUrl).then(response => {
+                return response.json();
+            }).then(data => {
+                // TODO, get data and redirect
+                window.location.replace("https://google.com"); // placeholder redirect
+            }).catch(err => {
+                alert("Failed to create new game");
+            });
+        }
+    </script>
+
+</body>
+
 </html>
