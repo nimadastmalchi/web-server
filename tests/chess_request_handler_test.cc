@@ -135,3 +135,22 @@ TEST_F(ChessRequestHandlerTest, GetViewer) {
     std::string file_body = file_system_->read_file("/0").value();
     EXPECT_EQ(file_body, "1.1.1.1\n2.2.2.2\ntest\n");
 }
+
+TEST_F(ChessRequestHandlerTest, GetHomePage) {
+    file_system_->write_file("/chess130/home.html", "test");
+
+    http::request<http::string_body> req{http::verb::get, "test", 11};
+    http::response<http::string_body> res;
+
+    handler_.handle_request(req, res);
+    EXPECT_EQ(res.body(), "test");
+    EXPECT_EQ(res.result(), http::status::ok);
+}
+
+TEST_F(ChessRequestHandlerTest, HomePageNotFound) {
+    http::request<http::string_body> req{http::verb::get, "test", 11};
+    http::response<http::string_body> res;
+
+    handler_.handle_request(req, res);
+    EXPECT_EQ(res.result(), http::status::not_found);
+}

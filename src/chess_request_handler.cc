@@ -44,6 +44,28 @@ void populate_bad_response(const http::request<http::string_body>& request,
     response.prepare_payload();
 }
 
+// Given the file_path, return response with file content
+// If the file is not found, populate 404 response instead
+bool ChessRequestHandler::populate_file_response(
+    const http::request<http::string_body>& request,
+    http::response<http::string_body>& response, const std::string& file_path) {
+    auto contents = file_system_->read_file(file_path);
+    if (contents) {
+        response.body() = contents.value();
+        response.version(request.version());
+        response.result(http::status::ok);
+        response.set(http::field::content_type, "text/html");
+        response.prepare_payload();
+
+        return true;
+    }
+
+    // If the file doesn't exist, return 404:
+    NotFoundHandler not_found_handler;
+
+    return not_found_handler.handle_request(request, response);
+}
+
 std::vector<std::string> ChessRequestHandler::parse_request_path(
     std::string request_str) {
     while (request_str.size() > 0 && request_str.back() == '/')
@@ -76,24 +98,15 @@ status ChessRequestHandler::handle_get(
     int path_length = parsed_path.size();
     if (path_length == 0) {
         // Handle GET /chess:
-        // TODO...
-        return true;
+        // Fill response with home page (home.html):
+        return populate_file_response(request, response, "/chess130/home.html");
     } else if (path_length == 1) {
         // Handle GET /chess/<id>:
         std::string file_path = data_path_ + "/" + parsed_path[0];
         // If the ID exists, return chessboard.html:
         if (file_system_->read_file(file_path)) {
-            auto contents =
-                file_system_->read_file("/chess130/chessboard.html");
-            if (contents) {
-                response.body() = contents.value();
-                response.version(request.version());
-                response.result(http::status::ok);
-                response.set(http::field::content_type, "text/html");
-                response.prepare_payload();
-
-                return true;
-            }
+            return populate_file_response(request, response,
+                                          "/chess130/chessboard.html");
         }
         // If the file doesn't exist, return 404:
         NotFoundHandler not_found_handler;
