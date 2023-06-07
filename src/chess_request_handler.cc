@@ -113,7 +113,7 @@ status ChessRequestHandler::handle_get(
         // If the file doesn't exist, return 404:
         NotFoundHandler not_found_handler;
         return not_found_handler.handle_request(request, response);
-    } else if (path_length == 2) {
+    } else if (path_length == 2 || path_length == 3) {
         // Handle GET /chess/games/<id>:
         // Unsupported endpoint:
         if (parsed_path[0] != "games") {
@@ -138,6 +138,22 @@ status ChessRequestHandler::handle_get(
                 return not_found_handler.handle_request(request, response);
             }
 
+            std::string user_id(20, 0);
+
+            if (path_length == 2) {
+                auto randchar = []() -> char {
+                    const char charset[] =
+                        "0123456789"
+                        "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
+                        "abcdefghijklmnopqrstuvwxyz";
+                    const size_t max_index = (sizeof(charset) - 1);
+                    return charset[rand() % max_index];
+                };
+                std::generate_n(user_id.begin(), 20, randchar);
+            } else {
+                user_id = parsed_path[2];
+            }
+
             std::string role;
             std::string updated_file_body;
             std::string white_address = parsed_file_body[0];
@@ -146,16 +162,16 @@ status ChessRequestHandler::handle_get(
             std::string last_move = parsed_file_body[3];
             if (white_address.empty()) {
                 role = "w";
-                updated_file_body = address_ + "\n" + black_address + "\n" +
+                updated_file_body = user_id + "\n" + black_address + "\n" +
                                     fen + "\n" + last_move + "\n";
-            } else if (black_address.empty() && white_address != address_) {
+            } else if (black_address.empty() && white_address != user_id) {
                 role = "b";
-                updated_file_body = white_address + "\n" + address_ + "\n" +
+                updated_file_body = white_address + "\n" + user_id + "\n" +
                                     fen + "\n" + last_move + "\n";
             } else {
-                if (address_ == white_address) {
+                if (user_id == white_address) {
                     role = "w";
-                } else if (address_ == black_address) {
+                } else if (user_id == black_address) {
                     role = "b";
                 } else {
                     role = "v";
@@ -164,9 +180,10 @@ status ChessRequestHandler::handle_get(
             }
             file_system_->write_file(file_path, updated_file_body);
 
-            std::string response_body =
-                "{\"role\": \"" + role + "\", \"fen\": \"" + fen +
-                "\", \"last_move\": \"" + last_move + "\"}";
+            std::string response_body = "{\"role\": \"" + role +
+                                        "\", \"fen\": \"" + fen +
+                                        "\", \"last_move\": \"" + last_move +
+                                        "\", \"user_id\": \"" + user_id + "\"}";
             response.body() = response_body;
             response.version(request.version());
             response.result(http::status::ok);

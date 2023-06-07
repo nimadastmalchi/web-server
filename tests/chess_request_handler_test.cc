@@ -103,36 +103,40 @@ TEST_F(ChessRequestHandlerTest, AddNewPlayer) {
     http::response<http::string_body> res;
 
     handler_.handle_request(req, res);
-    EXPECT_EQ(res.body(),
-              "{\"role\": \"w\", \"fen\": \"test\", \"last_move\": \"\"}");
+    EXPECT_EQ(res.body().substr(0, res.body().find("\"user_id\"")),
+              "{\"role\": \"w\", \"fen\": \"test\", \"last_move\": \"\", ");
     EXPECT_EQ(res.result(), http::status::ok);
 
     std::string file_body = file_system_->read_file("/0").value();
-    EXPECT_EQ(file_body, "0.0.0.0\n\ntest\n\n");
+    EXPECT_EQ(file_body.substr(20), "\n\ntest\n\n");
 }
 
 TEST_F(ChessRequestHandlerTest, GetExistingPlayer) {
-    file_system_->write_file("/0", "0.0.0.0\n1.1.1.1\ntest\n\n");
-    http::request<http::string_body> req{http::verb::get, "test/games/0", 11};
+    file_system_->write_file("/0", "test\n1.1.1.1\ntest\n\n");
+    http::request<http::string_body> req{http::verb::get, "test/games/0/test",
+                                         11};
     http::response<http::string_body> res;
 
     handler_.handle_request(req, res);
     EXPECT_EQ(res.body(),
-              "{\"role\": \"w\", \"fen\": \"test\", \"last_move\": \"\"}");
+              "{\"role\": \"w\", \"fen\": \"test\", \"last_move\": \"\", "
+              "\"user_id\": \"test\"}");
     EXPECT_EQ(res.result(), http::status::ok);
 
     std::string file_body = file_system_->read_file("/0").value();
-    EXPECT_EQ(file_body, "0.0.0.0\n1.1.1.1\ntest\n\n");
+    EXPECT_EQ(file_body, "test\n1.1.1.1\ntest\n\n");
 }
 
 TEST_F(ChessRequestHandlerTest, GetViewer) {
     file_system_->write_file("/0", "1.1.1.1\n2.2.2.2\ntest\n\n");
-    http::request<http::string_body> req{http::verb::get, "test/games/0", 11};
+    http::request<http::string_body> req{http::verb::get, "test/games/0/test",
+                                         11};
     http::response<http::string_body> res;
 
     handler_.handle_request(req, res);
     EXPECT_EQ(res.body(),
-              "{\"role\": \"v\", \"fen\": \"test\", \"last_move\": \"\"}");
+              "{\"role\": \"v\", \"fen\": \"test\", \"last_move\": \"\", "
+              "\"user_id\": \"test\"}");
     EXPECT_EQ(res.result(), http::status::ok);
 
     std::string file_body = file_system_->read_file("/0").value();

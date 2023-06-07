@@ -1,6 +1,6 @@
 server {
     port 80;
-    num_workers 20;
+    num_workers 60;
 
     location /static/all StaticHandler {
         root /;

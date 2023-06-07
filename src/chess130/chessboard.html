@@ -30,7 +30,7 @@
 
         function onDragStart(source, piece, position, orientation) {
             // do not pick up pieces if the game is over
-            if (game.game_over()  || !turn) return false
+            if (game.game_over() || !turn) return false
 
             // only pick up pieces for the side to move
             if ((game.turn() === 'w' && piece.search(/^b/) !== -1) ||
@@ -49,8 +49,9 @@
 
             // illegal move
             if (move === null) return 'snapback'
-            
+
             prev_move = move;
+            turn = false;
             sendMove(`${source} ... ${target}`);
             updateStatus()
         }
@@ -104,27 +105,32 @@
         updateStatus()
 
         function getGameStatus() {
-            fetch(`/chess/games/${id}`).then(response => response.json()).then(data => {
-                console.log(JSON.stringify(data))
-                const role = data.role
-                console.log(game.turn(), role, game.turn() == role)
-                turn = game.turn() == role
-                const orientation = role == 'w' ? 'white' : 'black'
-                board.orientation(orientation)
-                if (prev_move != data.last_move) {
-                    const [source, target] = data.last_move.split(" ... ");
-                    prev_move = data.last_move
-                    game.move({
-                        from: source,
-                        to: target,
-                        promotion: 'q' // NOTE: always promote to a queen for example simplicity
-                    })
-                    if (data.fen != game.fen()) { // even after repeating the last move, the game state doesn't match
-                        game.load(data.fen)
+            const user_id = localStorage.getItem("CHESS130USERID");
+            if (!turn) {
+                fetch(`/chess/games/${id}${user_id ? `/${user_id}` : ""}`).then(response => response.json()).then(data => {
+                    console.log(JSON.stringify(data))
+                    const role = data.role
+                    const userId = data.user_id
+                    localStorage.setItem("CHESS130USERID", userId)
+                    const orientation = role == 'w' ? 'white' : 'black'
+                    board.orientation(orientation)
+                    if (prev_move != data.last_move) {
+                        const [source, target] = data.last_move.split(" ... ");
+                        prev_move = data.last_move
+                        game.move({
+                            from: source,
+                            to: target,
+                            promotion: 'q' // NOTE: always promote to a queen for example simplicity
+                        })
+                        if (data.fen != game.fen()) { // even after repeating the last move, the game state doesn't match
+                            game.load(data.fen)
+                        }
+                        board.position(data.fen, true)
                     }
-                    board.position(data.fen, true)
-                }
-            })
+                    console.log(game.turn(), role, game.turn() == role)
+                    turn = game.turn() == role
+                })
+            }
         }
 
         getGameStatus();
