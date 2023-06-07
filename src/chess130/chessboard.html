@@ -15,14 +15,22 @@
     <script>
         var board = null
         var game = new Chess()
-        var fen = ""
+        var prev_move = null
+        var turn = false;
 
         const pathname = window.location.pathname
         const id = pathname.split("/").slice(-1)[0]
 
+        function sendMove(move) {
+            fetch(`/chess/games/${id}`, {
+                method: 'PUT',
+                body: game.fen() + "\n" + move
+            });
+        }
+
         function onDragStart(source, piece, position, orientation) {
             // do not pick up pieces if the game is over
-            if (game.game_over()) return false
+            if (game.game_over()  || !turn) return false
 
             // only pick up pieces for the side to move
             if ((game.turn() === 'w' && piece.search(/^b/) !== -1) ||
@@ -41,7 +49,9 @@
 
             // illegal move
             if (move === null) return 'snapback'
-
+            
+            prev_move = move;
+            sendMove(`${source} ... ${target}`);
             updateStatus()
         }
 
@@ -52,7 +62,7 @@
         }
 
         function updateStatus() {
-            console.log(fen)
+            console.log(prev_move)
             var status = ''
             var moveColor = 'White'
             if (game.turn() === 'b') {
@@ -98,14 +108,27 @@
                 console.log(JSON.stringify(data))
                 const role = data.role
                 console.log(game.turn(), role, game.turn() == role)
+                turn = game.turn() == role
                 const orientation = role == 'w' ? 'white' : 'black'
                 board.orientation(orientation)
-                fen = data.fen
+                if (prev_move != data.last_move) {
+                    const [source, target] = data.last_move.split(" ... ");
+                    prev_move = data.last_move
+                    game.move({
+                        from: source,
+                        to: target,
+                        promotion: 'q' // NOTE: always promote to a queen for example simplicity
+                    })
+                    if (data.fen != game.fen()) { // even after repeating the last move, the game state doesn't match
+                        game.load(data.fen)
+                    }
+                    board.position(data.fen, true)
+                }
             })
         }
 
-
-        setInterval(getGameStatus, 5000);
+        getGameStatus();
+        setInterval(getGameStatus, 1000);
     </script>
 </body>
 

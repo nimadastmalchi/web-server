@@ -39,7 +39,7 @@ TEST_F(ChessRequestHandlerTest, ValidPost) {
                                    boost::regex("{\"id\": ([0-9]+)}")));
 
     std::string file_body = file_system_->read_file("/" + game_id[1]).value();
-    EXPECT_EQ(file_body, "\n\nrnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR\n");
+    EXPECT_EQ(file_body, "\n\nrnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR\n\n");
 }
 
 TEST_F(ChessRequestHandlerTest, BadGetPath) {
@@ -60,7 +60,7 @@ TEST_F(ChessRequestHandlerTest, InvalidGetID) {
 }
 
 TEST_F(ChessRequestHandlerTest, ValidGetID) {
-    file_system_->write_file("/0", "test");
+    file_system_->write_file("/0", "test\ntest\ntest\ntest");
     file_system_->write_file("/chess130/chessboard.html", "test");
     http::request<http::string_body> req{http::verb::get, "test/0", 11};
     http::response<http::string_body> res;
@@ -98,42 +98,45 @@ TEST_F(ChessRequestHandlerTest, InvalidFileContent) {
 }
 
 TEST_F(ChessRequestHandlerTest, AddNewPlayer) {
-    file_system_->write_file("/0", "\n\ntest\n");
+    file_system_->write_file("/0", "\n\ntest\n\n");
     http::request<http::string_body> req{http::verb::get, "test/games/0", 11};
     http::response<http::string_body> res;
 
     handler_.handle_request(req, res);
-    EXPECT_EQ(res.body(), "{\"role\": \"w\", \"fen\": \"test\"}");
+    EXPECT_EQ(res.body(),
+              "{\"role\": \"w\", \"fen\": \"test\", \"last_move\": \"\"}");
     EXPECT_EQ(res.result(), http::status::ok);
 
     std::string file_body = file_system_->read_file("/0").value();
-    EXPECT_EQ(file_body, "0.0.0.0\n\ntest\n");
+    EXPECT_EQ(file_body, "0.0.0.0\n\ntest\n\n");
 }
 
 TEST_F(ChessRequestHandlerTest, GetExistingPlayer) {
-    file_system_->write_file("/0", "0.0.0.0\n1.1.1.1\ntest\n");
+    file_system_->write_file("/0", "0.0.0.0\n1.1.1.1\ntest\n\n");
     http::request<http::string_body> req{http::verb::get, "test/games/0", 11};
     http::response<http::string_body> res;
 
     handler_.handle_request(req, res);
-    EXPECT_EQ(res.body(), "{\"role\": \"w\", \"fen\": \"test\"}");
+    EXPECT_EQ(res.body(),
+              "{\"role\": \"w\", \"fen\": \"test\", \"last_move\": \"\"}");
     EXPECT_EQ(res.result(), http::status::ok);
 
     std::string file_body = file_system_->read_file("/0").value();
-    EXPECT_EQ(file_body, "0.0.0.0\n1.1.1.1\ntest\n");
+    EXPECT_EQ(file_body, "0.0.0.0\n1.1.1.1\ntest\n\n");
 }
 
 TEST_F(ChessRequestHandlerTest, GetViewer) {
-    file_system_->write_file("/0", "1.1.1.1\n2.2.2.2\ntest\n");
+    file_system_->write_file("/0", "1.1.1.1\n2.2.2.2\ntest\n\n");
     http::request<http::string_body> req{http::verb::get, "test/games/0", 11};
     http::response<http::string_body> res;
 
     handler_.handle_request(req, res);
-    EXPECT_EQ(res.body(), "{\"role\": \"v\", \"fen\": \"test\"}");
+    EXPECT_EQ(res.body(),
+              "{\"role\": \"v\", \"fen\": \"test\", \"last_move\": \"\"}");
     EXPECT_EQ(res.result(), http::status::ok);
 
     std::string file_body = file_system_->read_file("/0").value();
-    EXPECT_EQ(file_body, "1.1.1.1\n2.2.2.2\ntest\n");
+    EXPECT_EQ(file_body, "1.1.1.1\n2.2.2.2\ntest\n\n");
 }
 
 TEST_F(ChessRequestHandlerTest, GetHomePage) {
@@ -156,11 +159,11 @@ TEST_F(ChessRequestHandlerTest, HomePageNotFound) {
 }
 
 TEST_F(ChessRequestHandlerTest, PutNewFenString) {
-    file_system_->write_file("/0", "0.0.0.0\n2.2.2.2\ntest\n");
+    file_system_->write_file("/0", "0.0.0.0\n2.2.2.2\ntest\n\n");
 
     // Update fen string:
     http::request<http::string_body> req{http::verb::put, "test/games/0", 11};
-    req.body() = "new_test";
+    req.body() = "new_test\ntest";
     http::response<http::string_body> res;
 
     handler_.handle_request(req, res);
@@ -168,7 +171,7 @@ TEST_F(ChessRequestHandlerTest, PutNewFenString) {
 
     // Ensure fen string is updated:
     std::string file_body = file_system_->read_file("/0").value();
-    EXPECT_EQ(file_body, "0.0.0.0\n2.2.2.2\nnew_test\n");
+    EXPECT_EQ(file_body, "0.0.0.0\n2.2.2.2\nnew_test\ntest\n");
 }
 
 TEST_F(ChessRequestHandlerTest, InvalidPutRequestURI) {

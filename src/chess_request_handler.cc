@@ -129,7 +129,7 @@ status ChessRequestHandler::handle_get(
             std::vector<std::string> parsed_file_body =
                 parse_file_body(file_body);
 
-            if (parsed_file_body.size() != 3) {
+            if (parsed_file_body.size() != 4) {
                 // If the file is incorrectly formatted, delete it and return
                 // 404:
                 Logger::log_trace("Deleting incorrectly formatted file");
@@ -143,14 +143,15 @@ status ChessRequestHandler::handle_get(
             std::string white_address = parsed_file_body[0];
             std::string black_address = parsed_file_body[1];
             std::string fen = parsed_file_body[2];
+            std::string last_move = parsed_file_body[3];
             if (white_address.empty()) {
                 role = "w";
-                updated_file_body =
-                    address_ + "\n" + black_address + "\n" + fen + "\n";
+                updated_file_body = address_ + "\n" + black_address + "\n" +
+                                    fen + "\n" + last_move + "\n";
             } else if (black_address.empty() && white_address != address_) {
                 role = "b";
-                updated_file_body =
-                    white_address + "\n" + address_ + "\n" + fen + "\n";
+                updated_file_body = white_address + "\n" + address_ + "\n" +
+                                    fen + "\n" + last_move + "\n";
             } else {
                 if (address_ == white_address) {
                     role = "w";
@@ -164,7 +165,8 @@ status ChessRequestHandler::handle_get(
             file_system_->write_file(file_path, updated_file_body);
 
             std::string response_body =
-                "{\"role\": \"" + role + "\", \"fen\": \"" + fen + "\"}";
+                "{\"role\": \"" + role + "\", \"fen\": \"" + fen +
+                "\", \"last_move\": \"" + last_move + "\"}";
             response.body() = response_body;
             response.version(request.version());
             response.result(http::status::ok);
@@ -212,7 +214,8 @@ status ChessRequestHandler::handle_create(
     }
 
     // Write the starting state of the game:
-    std::string file_body = "\n\nrnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR\n";
+    std::string file_body =
+        "\n\nrnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR\n\n";
     file_system_->write_file(file_path, file_body);
 
     // Return the ID of the game:
@@ -237,7 +240,9 @@ status ChessRequestHandler::handle_put(
     std::string request_str(request.target().data(), request.target().size());
     std::vector<std::string> parsed_path = parse_request_path(request_str);
 
-    std::string new_fen(request.body().data(), request.body().size());
+    std::string body(request.body().data(), request.body().size());
+    std::string new_fen = body.substr(0, body.find("\n"));
+    std::string new_last_move = body.substr(body.find("\n") + 1);
 
     if (parsed_path.size() == 2) {
         std::string file_path = data_path_ + "/" + parsed_path[1];
@@ -247,7 +252,7 @@ status ChessRequestHandler::handle_put(
             std::vector<std::string> parsed_file_body =
                 parse_file_body(file_body);
 
-            if (parsed_file_body.size() != 3) {
+            if (parsed_file_body.size() != 4) {
                 // If the file is incorrectly formatted, delete it and return
                 // 404:
                 Logger::log_trace("Deleting incorrectly formatted file");
@@ -258,8 +263,9 @@ status ChessRequestHandler::handle_put(
 
             std::string white_address = parsed_file_body[0];
             std::string black_address = parsed_file_body[1];
-            std::string updated_file_body =
-                white_address + "\n" + black_address + "\n" + new_fen + "\n";
+            std::string updated_file_body = white_address + "\n" +
+                                            black_address + "\n" + new_fen +
+                                            "\n" + new_last_move + "\n";
             file_system_->write_file(file_path, updated_file_body);
 
             response.version(request.version());
