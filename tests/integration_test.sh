@@ -197,6 +197,58 @@ else
     exit_status=1
 fi
 
+################# Test 16 #################
+actual_output=$(curl --max-time $DELAY \
+    --request POST \
+    $host:$EXPOSED_PORT/chess/new --output -)
+
+# Extract the integer value from the actual_output string
+game_id=$(echo "$actual_output" | sed -n 's/.*"id": \([0-9]*\).*/\1/p')
+
+# Access the file stored for this file
+actual_output=$(curl --max-time $DELAY \
+    --request GET \
+    $host:$EXPOSED_PORT/chess/games/$game_id --output -)
+
+# Ensure the role and fen fields are correct:
+expected_role='"w"'
+expected_fen='"rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR"'
+
+if [[ "$actual_output" == *"\"role\": $expected_role"* ]] \
+   && [[ "$actual_output" == *"\"fen\": $expected_fen"* ]]; then
+    # Role and fen strings match the expected values.
+    echo "Integration Test 16 passed"
+else
+    echo "Integration Test 16 failed"
+    exit_status=1
+fi
+
+################# Test 17 #################
+# Note: this test depends on test 16
+
+# Update fen string:
+expected_fen = "rnbqkbnr/pppppppp/8/8/4P3/8/PPPP1PPP/RNBQKBNR b KQkq e3 0 1"
+curl --max-time $DELAY \
+     --request PUT \
+     --header "Content-Type: application/json" \
+     --data $expected_fen \
+     $host:$EXPOSED_PORT/chess/games/$game_id \
+     --output -
+
+actual_output=$(curl --max-time $DELAY \
+                     --request GET \
+                     $host:$EXPOSED_PORT/chess/games/$game_id \
+                     --output -)
+
+# Ensure the role and fen fields are correct:
+if [[ "$actual_output" == *"\"fen\": \"$expected_fen\""* ]]; then
+    # Role and fen strings match the expected values.
+    echo "Integration Test 17 passed"
+else
+    echo "Integration Test 17 failed"
+    exit_status=1
+fi
+
 # Kill server
 kill -9 $server_pid
 
